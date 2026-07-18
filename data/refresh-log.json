@@ -32,9 +32,9 @@
     {
       "type": "insurance_reinsurance_loss_estimates",
       "cadence": "quarterly",
-      "source": "Aon, Gallagher Re, Munich Re, Swiss Re (flag as interested-party)",
+      "source": "Aon '2026 Climate and Catastrophe Insight' report and Swiss Re sigma No. 1/2026 (flag as interested-party; not a live API — these are periodic published reports, manual research not a fetch script). Gallagher Re and Munich Re not yet pulled from — Aon and Swiss Re were sufficient for this pass and cross-corroborated on the LA wildfire loss figure.",
       "fetch_script": null,
-      "last_run": null
+      "last_run": "2026-07-18T00:00:00"
     },
     {
       "type": "drought_status",
@@ -62,7 +62,7 @@
       "cadence": "on-demand",
       "source": "NASA FIRMS (active-fire point detections, not perimeters \u2014 free MAP_KEY required)",
       "fetch_script": "scripts/fetch_wildfire.py",
-      "last_run": "2026-07-18T12:48:19"
+      "last_run": "2026-07-18T13:02:24"
     }
   ]
 }

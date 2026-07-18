@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
 """
 Pull active fire detections from NASA FIRMS (Fire Information for Resource
-Management System) for a California bounding box — the region relevant to
-this dataset's wildfire-exposed entries (CB, BLDR, LEN). Stdlib-only
-(urllib), requires a free MAP_KEY (see below) but no paid account.
+Management System) for the fire-prone Western US — not California alone.
+Widened 2026-07-18: CB (Chubb) is a national insurer, and its wildfire/
+secondary-peril exposure isn't limited to CA; BLDR and LEN's rebuild/coastal
+theses are more CA/FL-specific, but the region below still covers their
+relevant geography. Stdlib-only (urllib), requires a free MAP_KEY (see
+below) but no paid account.
+
+Trade-off: one wide bounding box means the summary stats (detection count,
+total FRP) are a regional aggregate, not broken out by state. If per-state
+attribution becomes valuable later, split WESTERN_US_BBOX into several
+state-level boxes and query each separately rather than one big box.
 
 Get a free MAP_KEY (email only, no account/password, delivered instantly):
     https://firms.modaps.eosdis.nasa.gov/api/map_key/
@@ -38,9 +46,11 @@ FIRMS_BASE = "https://firms.modaps.eosdis.nasa.gov/api/area/csv"
 SOURCE = "VIIRS_SNPP_NRT"  # VIIRS is higher-resolution than MODIS for active-fire detection
 DAY_RANGE = 2
 
-# California bounding box (min_lon,min_lat,max_lon,max_lat) — widen this if
-# wildfire relevance expands beyond CA-tagged entries (CB, BLDR, LEN).
-CALIFORNIA_BBOX = "-124.5,32.5,-114.0,42.0"
+# Western US bounding box (min_lon,min_lat,max_lon,max_lat) — covers CA, OR,
+# WA, NV, ID, UT, AZ, NM, CO, MT, WY: the fire-prone West as a whole, not
+# just California. (Was CA-only: "-124.5,32.5,-114.0,42.0" — widened per
+# the reasoning above.)
+WESTERN_US_BBOX = "-125.0,31.0,-102.0,49.0"
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT_PATH = ROOT / "data" / "wildfire-status.json"
@@ -48,7 +58,7 @@ REFRESH_LOG_PATH = ROOT / "data" / "refresh-log.json"
 
 
 def fetch_csv_text(map_key):
-    url = f"{FIRMS_BASE}/{map_key}/{SOURCE}/{CALIFORNIA_BBOX}/{DAY_RANGE}"
+    url = f"{FIRMS_BASE}/{map_key}/{SOURCE}/{WESTERN_US_BBOX}/{DAY_RANGE}"
     req = urllib.request.Request(url, headers={"User-Agent": "climate-risk-dashboard/1.0"})
     with urllib.request.urlopen(req, timeout=25) as resp:
         return resp.read().decode("utf-8")
@@ -96,8 +106,8 @@ def main():
 
     result = {
         "fetched_on": date.today().isoformat(),
-        "source": "NASA FIRMS, VIIRS_SNPP_NRT, California bbox, trailing 2 days",
-        "region_bbox": CALIFORNIA_BBOX,
+        "source": "NASA FIRMS, VIIRS_SNPP_NRT, Western US bbox (CA/OR/WA/NV/ID/UT/AZ/NM/CO/MT/WY), trailing 2 days",
+        "region_bbox": WESTERN_US_BBOX,
         "day_range": DAY_RANGE,
         "detection_count": len(rows),
         "high_confidence_count": len(high_confidence),
@@ -108,7 +118,7 @@ def main():
     OUT_PATH.write_text(json.dumps(result, indent=2), encoding="utf-8")
     update_refresh_log()
 
-    print(f"California, trailing {DAY_RANGE}d: {len(rows)} detections ({len(high_confidence)} high-confidence), total FRP {total_frp:.1f} MW")
+    print(f"Western US, trailing {DAY_RANGE}d: {len(rows)} detections ({len(high_confidence)} high-confidence), total FRP {total_frp:.1f} MW")
     print(f"Wrote {OUT_PATH.relative_to(ROOT)}")
 
 

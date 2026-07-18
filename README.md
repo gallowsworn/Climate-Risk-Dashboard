@@ -11,7 +11,7 @@ named source; "I'm not sure" is a valid field value.
 
 ## Posture values
 
-`posture` has five values — the dashboard's Legend panel (top of the filter
+`posture` has six values — the dashboard's Legend panel (top of the filter
 bar) and hover/focus tooltips on each badge show these same definitions
 in-app:
 
@@ -20,6 +20,7 @@ in-app:
 - **tactical** — sized for a specific, time-limited catalyst window, not a long-term hold
 - **watch** — no position yet; monitoring for a clearer signal before acting
 - **hedge** — sized to offset/protect against this risk, not to profit from it directly
+- **delisted** — no longer tradable; excluded from the dashboard's default view (see below)
 
 `hold` vs. `accumulate` is the one nuance worth calling out: `hold` means the
 thesis is real but currently fragile, reversible, or just-revised (e.g. CF's
@@ -89,13 +90,11 @@ delisted, exact wave unconfirmed" before this was pinned down. `notes.core`
 on both entries now leads with an unmissable delisted warning; both should
 be treated as historical/reference content only, not actionable positions.
 
-**Known gap, not yet fixed:** `posture`/`direction` on both entries still
-read `"tactical"`/`"benefit"` — the schema has no "inactive" state, so every
-filter, stat tile, and badge in the dashboard currently presents these two
-dead instruments as live positions; only the prose in `notes.core` says
-otherwise. See CLAUDE.md's "Known open items" for the proposed fix (a 6th
-posture value or an `active` flag) — not implemented yet, pending a decision
-on the right schema shape.
+**Fixed (2026-07-18):** both entries now carry `posture: "delisted"` and are
+excluded from the dashboard's default view — not just relabeled. They're
+still in the JSON for historical reference and reachable via the "Show
+delisted" checkbox, but no longer count toward the "Targets" stat tile or
+show up in the default card list.
 
 **CANE (Teucrium) and DBA (Invesco) are unaffected** — different issuers,
 both confirmed actively trading.
@@ -274,10 +273,14 @@ pattern every other script here follows.
   requires a free `MAP_KEY` (email only, no account/password, delivered
   instantly at [firms.modaps.eosdis.nasa.gov/api/map_key](https://firms.modaps.eosdis.nasa.gov/api/map_key/) —
   set it as the `NASA_FIRMS_MAP_KEY` environment variable before running).
-  This returns point-level active-fire *detections* (satellite hotspots),
-  not fire *perimeters*/acreage like NIFC would have — a coarser but still
-  genuinely primary data type, for a California bounding box relevant to
-  CB/BLDR/LEN. Not yet run against a real key as of this writing.
+  Returns point-level active-fire *detections* (satellite hotspots), not
+  fire *perimeters*/acreage like NIFC would have — a coarser but still
+  genuinely primary data type. Covers the fire-prone **Western US**
+  (CA/OR/WA/NV/ID/UT/AZ/NM/CO/MT/WY), not California alone — widened after
+  the initial CA-only version, since CB (Chubb) is a national insurer and
+  its wildfire/secondary-peril exposure isn't limited to one state. Live
+  result as of this build: 4,293 detections, total FRP 43,060 MW across
+  the region over a trailing 2 days.
 
 **Deliberately not applied to every `secular_warming`/`wildfire_drought_baseline`/`water_scarcity` entry.**
 Per Fable's own advice, new primary data was NOT added to CF, NTR, UNG, or
@@ -286,6 +289,30 @@ futures-roll mechanics, general consumer health) aren't actually about the
 tagged climate driver right now (see `driver_dominance: secondary` on
 each), so better climate data there would be sourcing rigor spent on the
 wrong variable.
+
+## Insurance/reinsurance loss data (added 2026-07-18)
+
+`insurance_reinsurance_loss_estimates` — flagged by Fable as "the most
+differentiated data source in the whole design and the only one never
+touched" — is now researched, though it stays a manual process, not a
+fetch script: Aon, Munich Re, and Swiss Re publish periodic reports (annual
+or semi-annual), not queryable APIs. Pulled from Aon's "2026 Climate and
+Catastrophe Insight" report and Swiss Re's sigma No. 1/2026 (both named,
+dated, flagged `interested_party` since both are reinsurers pricing this
+exact risk). Real findings folded into CB and LEN:
+
+- 2025 had **zero US hurricane landfalls** — the first time in 10 years —
+  yet global insured catastrophe losses still hit $127B, because secondary
+  perils (wildfire, severe convective storms) are now **92%** of insured
+  losses globally. Directly reinforces CB's "wildfire cuts the other way"
+  thesis leg.
+- The Jan 2025 Palisades/Eaton Fires' insured-loss figure cross-corroborated
+  closely between two competing sources: $41B (Aon) vs. ~$40B (Swiss Re).
+- Reconciled a scale mismatch already sitting in LEN's notes: the
+  "~$4B in LA wildfire losses" figure there is the CA FAIR Plan's own
+  assessment specifically, not the $40-41B industry-wide total — worth
+  knowing these are different numbers describing the same event at
+  different scales, not a contradiction.
 
 ## Candidate additions (status)
 

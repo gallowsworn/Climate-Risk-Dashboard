@@ -166,6 +166,8 @@
   .badge.posture-accumulate::before { background: var(--cat-green); }
   .badge.posture-hedge      { color: var(--cat-violet); background: color-mix(in srgb, var(--cat-violet) 14%, transparent); }
   .badge.posture-hedge::before      { background: var(--cat-violet); }
+  .badge.posture-delisted   { color: var(--text-muted); background: color-mix(in srgb, var(--text-muted) 12%, transparent); }
+  .badge.posture-delisted::before   { background: var(--text-muted); }
 
   .badge.dominance-dominant  { color: var(--good);       background: color-mix(in srgb, var(--good) 14%, transparent); }
   .badge.dominance-dominant::before  { background: var(--good); }
@@ -281,6 +283,7 @@
     <select id="policyFilter" aria-label="Filter by policy stance"><option value="">All policy stances</option></select>
     <select id="dominanceFilter" aria-label="Filter by driver dominance"><option value="">All driver dominance</option></select>
     <label class="chk"><input type="checkbox" id="staleOnly"> Stale only</label>
+    <label class="chk"><input type="checkbox" id="showDelisted"> Show delisted (<span id="delistedCount">0</span>)</label>
     <button class="legend-toggle" id="legendToggle" type="button" aria-expanded="false">Legend</button>
     <button class="reset" id="resetFilters" type="button">Reset filters</button>
   </div>
@@ -325,6 +328,7 @@ const GLOSSARY = {
     tactical: "Sized for a specific, time-limited catalyst window, not a long-term hold.",
     watch: "No position yet — monitoring for a clearer signal before acting.",
     hedge: "Sized to offset or protect against this risk, not to profit from it directly.",
+    delisted: "This instrument is no longer tradable (delisted/redeemed). Kept for historical/reference value only — hidden from the default view.",
   },
   risk_level: {
     low: "Lower volatility/uncertainty judged for this specific thesis.",
@@ -505,10 +509,13 @@ function cap(s) {
 function slug(s) { return s ? s.replace(/\//g, '') : s; }
 
 function renderStats() {
-  const total = TARGETS.length;
-  const staleCount = TARGETS.filter(t => computeStaleness(t).stale).length;
+  const active = TARGETS.filter(t => t.posture !== 'delisted');
+  const delistedCount = TARGETS.length - active.length;
+  document.getElementById('delistedCount').textContent = delistedCount;
+  const total = active.length;
+  const staleCount = active.filter(t => computeStaleness(t).stale).length;
   const postureCounts = {};
-  TARGETS.forEach(t => { postureCounts[t.posture] = (postureCounts[t.posture] || 0) + 1; });
+  active.forEach(t => { postureCounts[t.posture] = (postureCounts[t.posture] || 0) + 1; });
   // Evaluable = excludes delisted (n/a) tickers, since "is the driver dominant"
   // isn't a meaningful question for an instrument with no current thesis.
   const evaluable = TARGETS.filter(t => t.driver_dominance !== 'n/a');
@@ -603,12 +610,14 @@ function getFilters() {
     policy: document.getElementById('policyFilter').value,
     dominance: document.getElementById('dominanceFilter').value,
     staleOnly: document.getElementById('staleOnly').checked,
+    showDelisted: document.getElementById('showDelisted').checked,
   };
 }
 
 function applyFilters() {
   const f = getFilters();
   const filtered = TARGETS.filter(t => {
+    if (t.posture === 'delisted' && !f.showDelisted) return false;
     if (f.search && !(t.ticker.toLowerCase().includes(f.search) || t.name.toLowerCase().includes(f.search))) return false;
     if (f.driver && !t.primary_drivers.includes(f.driver)) return false;
     if (f.posture && t.posture !== f.posture) return false;
@@ -622,8 +631,9 @@ function applyFilters() {
     return true;
   });
 
+  const activeTotal = TARGETS.filter(t => t.posture !== 'delisted').length;
   const container = document.getElementById('cardContainer');
-  document.getElementById('resultCount').textContent = `${filtered.length} of ${TARGETS.length} targets`;
+  document.getElementById('resultCount').textContent = `${filtered.length} of ${f.showDelisted ? TARGETS.length : activeTotal} targets`;
   container.innerHTML = filtered.length
     ? filtered.map(renderCard).join('')
     : `<div class="empty-state">No targets match the current filters.</div>`;
@@ -650,6 +660,7 @@ function init() {
     document.querySelectorAll('.filter-bar select').forEach(s => s.value = '');
     document.getElementById('searchInput').value = '';
     document.getElementById('staleOnly').checked = false;
+    document.getElementById('showDelisted').checked = false;
     applyFilters();
   });
   const legendPanel = document.getElementById('legendPanel');
