@@ -4,3 +4,7 @@
 # Regenerated caches from scripts/fetch_*.py
 data/cot-cache.json
 data/enso-status.json
+data/drought-status.json
+data/sea-level-status.json
+data/temp-anomaly-status.json
+data/wildfire-status.json

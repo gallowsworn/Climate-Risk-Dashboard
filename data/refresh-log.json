@@ -35,6 +35,34 @@
       "source": "Aon, Gallagher Re, Munich Re, Swiss Re (flag as interested-party)",
       "fetch_script": null,
       "last_run": null
+    },
+    {
+      "type": "drought_status",
+      "cadence": "weekly",
+      "source": "NIDIS/USDM (US Drought Monitor)",
+      "fetch_script": "scripts/fetch_drought.py",
+      "last_run": "2026-07-18T12:32:47"
+    },
+    {
+      "type": "sea_level_trend",
+      "cadence": "quarterly (slow-moving multi-decadal trend, not a weekly mover)",
+      "source": "NOAA CO-OPS tide gauge monthly means (local linear-regression trend)",
+      "fetch_script": "scripts/fetch_sea_level.py",
+      "last_run": "2026-07-18T12:32:47"
+    },
+    {
+      "type": "temp_anomaly",
+      "cadence": "monthly",
+      "source": "NASA GISS Surface Temperature Analysis (GISTEMP v4)",
+      "fetch_script": "scripts/fetch_temp_anomaly.py",
+      "last_run": "2026-07-18T12:32:48"
+    },
+    {
+      "type": "wildfire_perimeters",
+      "cadence": "on-demand",
+      "source": "NASA FIRMS (active-fire point detections, not perimeters \u2014 free MAP_KEY required)",
+      "fetch_script": "scripts/fetch_wildfire.py",
+      "last_run": "2026-07-18T12:48:19"
     }
   ]
 }

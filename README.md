@@ -45,27 +45,57 @@ dashboard's own call — divergence is flagged, not resolved in the dashboard's
 favor. Populated 2026-07-18 for all 28 tickers via three background research
 passes grouped by sector.
 
-Two ETF/ETN-type tickers (UNG, and the three iPath products below) have no
-traditional sell-side equity coverage by design — expected, not a gap.
+Five fund/ETF/ETN-type tickers (NIB, JO, CANE, DBA, UNG) have no traditional
+sell-side equity coverage by design — expected, not a gap. Only two of the
+five (NIB, JO) are iPath products; CANE and DBA are unrelated issuers.
 
-## Data integrity note: NIB and JO trading status (found 2026-07-18)
+## `driver_dominance`
+
+A field answering a different question than any other in the schema: is the
+climate/ecological driver this ticker is *tagged* with actually the reason
+its price is moving *right now* — or has something else (a war, an M&A deal,
+a mine accident, a sector cycle) taken over as the real story? Three values,
+plus a fourth for delisted tickers:
+
+- **dominant** — the tagged driver genuinely is the binding variable right now
+- **contested** — real tension, two factors are plausibly co-dominant
+- **secondary** — a clearly different, named factor is what's actually moving the thesis
+- **n/a** — delisted, no current thesis to evaluate (NIB, JO)
+
+This exists because an independent review (see below) found that a growing
+share of entries kept admitting, in their own notes, that the tagged driver
+wasn't the real story — without the schema ever acting on that admission.
+It's deliberately cheap to maintain: set from the same reasoning already
+going into `notes.signal_check`, not a separate research task. Distribution
+as of 2026-07-18, across the 26 non-delisted tickers: **8 dominant / 2
+contested / 16 secondary** — only about 31% of the dataset currently has its
+tagged driver as the actual binding variable. That fraction is surfaced as
+its own dashboard stat tile so it can't quietly drift without being visible.
+`secondary`/`n/a` entries are dimmed (not hidden) in the dashboard — they
+still have research value, they're just not the headline story right now.
+
+## Data integrity note: NIB and JO are both delisted (confirmed 2026-07-18)
 
 While researching analyst consensus, cross-checking surfaced a real problem
-predating this build: **NIB (iPath Bloomberg Cocoa Subindex ETN) was
-redeemed/delisted by Barclays on June 14, 2023** — confirmed via Yahoo
-Finance and TipRanks, both showing "no longer active." It had been sitting
-in this dataset as a live tactical position the whole time; `notes.core` now
-leads with an unmissable delisted warning, and it should be treated as
-historical/reference content only, not an actionable position.
+predating this build: **NIB (iPath Bloomberg Cocoa Subindex ETN) and JO
+(iPath Coffee ETN) were both redeemed/delisted by Barclays on the SAME date
+— June 14, 2023 — in the SAME 21-ETN redemption wave** (announced Apr 18,
+2023; trading suspended Jun 8, 2023). Both had been sitting in this dataset
+as live tactical positions for the entire build. Confirmed via Yahoo
+Finance/TipRanks (NIB) and the original Barclays/Businesswire redemption
+announcement, which explicitly names the coffee ETN among the products
+closing (JO) — an earlier pass on JO had only gotten as far as "likely
+delisted, exact wave unconfirmed" before this was pinned down. `notes.core`
+on both entries now leads with an unmissable delisted warning; both should
+be treated as historical/reference content only, not actionable positions.
 
-**JO (iPath Coffee ETN) is very likely delisted too (2026-07-18, high
-confidence but not fully confirmed)** — 0 trading volume against a 10.82K
-daily average, and multiple sources now describe it as "no longer active"
-with stale pricing. Barclays ran two further iPath redemption waves after
-2023 (18 ETNs in June 2024, 4 more in June 2025); which one JO fell into
-wasn't pinned down, but the pattern matches NIB's confirmed-delisted profile
-closely enough that `notes.core` treats it the same way — historical
-reference only, not an actionable position, pending a final broker check.
+**Known gap, not yet fixed:** `posture`/`direction` on both entries still
+read `"tactical"`/`"benefit"` — the schema has no "inactive" state, so every
+filter, stat tile, and badge in the dashboard currently presents these two
+dead instruments as live positions; only the prose in `notes.core` says
+otherwise. See CLAUDE.md's "Known open items" for the proposed fix (a 6th
+posture value or an `active` flag) — not implemented yet, pending a decision
+on the right schema shape.
 
 **CANE (Teucrium) and DBA (Invesco) are unaffected** — different issuers,
 both confirmed actively trading.
@@ -204,6 +234,58 @@ flagging as thin/indirect on arrival, not just carried-forward-and-untested:
 | Company hedging/valuation | Quarterly (earnings) | SEC 10-K/10-Q, earnings call transcripts |
 | Policy/regulatory status | As-announced, check monthly | EU Commission (EUDR), NOAA/BOEM (deep-sea mining), state insurance regulators, USDA/India Ministry of Commerce |
 | Insurance/reinsurance loss estimates | Quarterly | Aon, Gallagher Re, Munich Re, Swiss Re reports (flag as interested-party) |
+| Drought status | Weekly | NIDIS/US Drought Monitor — `scripts/fetch_drought.py` |
+| Sea level trend | Quarterly (slow-moving) | NOAA CO-OPS tide gauges — `scripts/fetch_sea_level.py` |
+| Global temperature anomaly | Monthly | NASA GISTEMP — `scripts/fetch_temp_anomaly.py` |
+| Wildfire (active-fire detections) | On-demand | NASA FIRMS, California — `scripts/fetch_wildfire.py` (needs a free `NASA_FIRMS_MAP_KEY`) |
+
+## Earth-science data sources (added 2026-07-18)
+
+Three new fetch scripts pull primary government/institutional climate data,
+following the same stdlib-only, no-API-key pattern as `fetch_enso.py`:
+
+- **`fetch_drought.py`** — NIDIS/US Drought Monitor severity (D0-D4, % of
+  CONUS area), weekly. Used to replace aggregator-sourced wildfire/drought
+  claims (CB, AWK, XYL, CTVA) with a primary federal measurement.
+- **`fetch_sea_level.py`** — NOAA CO-OPS tide-gauge monthly means, with the
+  30-year linear trend (mm/yr) computed locally rather than relying on
+  NOAA's own "sea level trends" derived-product endpoint, which was
+  returning 502 Bad Gateway during testing (likely down/deprecated, not an
+  auth issue). This filled a total void: `sea_level_coastal` previously had
+  *zero* physical measurement behind it (LEN, BLDR), only insurance-market
+  proxies. Real finding: Florida coastal gauges (Miami +6.81mm/yr, Key West
+  +6.14mm/yr) are rising more than twice as fast as California ones (LA
+  +2.58mm/yr, SF +2.87mm/yr) — a genuine tension with LEN's thesis, since
+  Florida's *insurance* pricing is currently improving even as its
+  *physical* sea-level risk accelerates faster than California's. Flagged
+  explicitly in LEN's `signal_check`, not resolved.
+- **`fetch_temp_anomaly.py`** — NASA GISTEMP global land-ocean temperature
+  anomaly. Used as brief corroborating context for the `secular_warming`
+  tag on GNRC and NEE specifically (their tagged driver has a genuine
+  multi-decade component, unlike CF/NTR where a near-term war dominates).
+
+**NIFC/InciWeb wildfire *perimeter* data was assessed and not built.** Every
+endpoint tested on NIFC's ArcGIS org (including metadata-only requests)
+returned `Token Required` — a real, current access restriction, not
+something specific to this project's queries, and it breaks the no-auth
+pattern every other script here follows.
+
+- **`fetch_wildfire.py`** — built instead using **NASA FIRMS**, which
+  requires a free `MAP_KEY` (email only, no account/password, delivered
+  instantly at [firms.modaps.eosdis.nasa.gov/api/map_key](https://firms.modaps.eosdis.nasa.gov/api/map_key/) —
+  set it as the `NASA_FIRMS_MAP_KEY` environment variable before running).
+  This returns point-level active-fire *detections* (satellite hotspots),
+  not fire *perimeters*/acreage like NIFC would have — a coarser but still
+  genuinely primary data type, for a California bounding box relevant to
+  CB/BLDR/LEN. Not yet run against a real key as of this writing.
+
+**Deliberately not applied to every `secular_warming`/`wildfire_drought_baseline`/`water_scarcity` entry.**
+Per Fable's own advice, new primary data was NOT added to CF, NTR, UNG, or
+HD — their current stories (a Hormuz-linked gas shock, a pending merger,
+futures-roll mechanics, general consumer health) aren't actually about the
+tagged climate driver right now (see `driver_dominance: secondary` on
+each), so better climate data there would be sourcing rigor spent on the
+wrong variable.
 
 ## Candidate additions (status)
 

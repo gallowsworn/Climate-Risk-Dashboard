@@ -10,21 +10,29 @@ A personal investing research tool, **not financial advice**. It screens US-mark
 
 ```
 /data
-  targets.json          the dataset — one object per ticker, schema below
-  driver-taxonomy.json  the 13-key driver framework (key, label, time_horizon, remediation_confidence, note)
-  refresh-log.json      per-data-type cadence + last-run tracking (not per-ticker — see targets.json for that)
-  enso-status.json      cache written by fetch_enso.py (gitignore-able, regenerated)
-  cot-cache.json         cache written by fetch_cot.py (gitignore-able, regenerated)
+  targets.json              the dataset — one object per ticker, schema below
+  driver-taxonomy.json      the 13-key driver framework (key, label, time_horizon, remediation_confidence, note)
+  refresh-log.json          per-data-type cadence + last-run tracking (not per-ticker — see targets.json for that)
+  enso-status.json          cache written by fetch_enso.py (gitignore-able, regenerated)
+  cot-cache.json            cache written by fetch_cot.py (gitignore-able, regenerated)
+  drought-status.json       cache written by fetch_drought.py (gitignore-able, regenerated)
+  sea-level-status.json     cache written by fetch_sea_level.py (gitignore-able, regenerated)
+  temp-anomaly-status.json  cache written by fetch_temp_anomaly.py (gitignore-able, regenerated)
 /scripts
-  fetch_enso.py          pulls NOAA CPC ONI data (stdlib urllib, no deps), classifies ENSO phase
+  fetch_enso.py           pulls NOAA CPC ONI data (stdlib urllib, no deps), classifies ENSO phase
   fetch_cot.py            pulls CFTC Commitment of Traders positioning for NIB/JO/CANE/UNG (stdlib urllib)
-  check_staleness.py     flags targets.json entries / refresh-log.json rows past their staleness window
-  serve.ps1              zero-dependency PowerShell static file server (see "Dev environment" below for why this exists)
+  fetch_drought.py        pulls NIDIS/USDM US Drought Monitor severity stats (stdlib urllib, no deps)
+  fetch_sea_level.py      pulls NOAA CO-OPS tide-gauge monthly means, computes sea-level trend locally (stdlib urllib)
+  fetch_temp_anomaly.py   pulls NASA GISTEMP global land-ocean temperature anomaly (stdlib urllib, no deps)
+  fetch_wildfire.py       pulls NASA FIRMS active-fire detections for California (stdlib urllib; needs a free NASA_FIRMS_MAP_KEY env var — see script docstring)
+  check_staleness.py      flags targets.json entries / refresh-log.json rows past their staleness window
+  serve.ps1               zero-dependency PowerShell static file server (see "Dev environment" below for why this exists)
 /dashboard
-  index.html              single-file dashboard: fetches ../data/*.json, filters/renders client-side, no build step
-README.md                 user-facing setup, run instructions, posture definitions, changelog-style "data status" notes
-CLAUDE.md                 this file
+  index.html               single-file dashboard: fetches ../data/*.json, filters/renders client-side, no build step
+README.md                  user-facing setup, run instructions, posture definitions, changelog-style "data status" notes
+CLAUDE.md                  this file
 ```
+
 
 There is no build step, no package.json, no server-side code. `dashboard/index.html` is plain HTML/CSS/JS that fetches the JSON files at runtime.
 
@@ -51,6 +59,8 @@ One object per ticker:
   "hedging_check": string | null,        // company-disclosed forward hedges from 10-K/earnings calls — hard checkable data
   "backtest_check": string | null,       // historical performance in prior analogous cycles — hard checkable data
   "analyst_consensus_check": string | null, // sell-side Wall Street consensus, kept as a cross-check ONLY — never blended into direction/posture. Ends with an explicit CORROBORATES/DIVERGES/MIXED-UNCLEAR verdict against the dashboard's own call. Prefers named industry-specialist/track-record-filtered analysts over raw consensus.
+  "driver_dominance": "dominant" | "contested" | "secondary" | "n/a", // is the tagged primary_drivers actually the binding variable in the CURRENT thesis, or has something else (geopolitics, M&A, an accident, a sector cycle) taken over? "n/a" only for delisted tickers. Derived from the same reasoning already in notes.signal_check at write time — never a separate research task.
+  "driver_dominance_note": string, // one-sentence rationale for the driver_dominance call above
   "notes": {
     "core": string,
     "policy": string | null,
@@ -98,6 +108,22 @@ Full definitions also live in `dashboard/index.html`'s `GLOSSARY` JS object (sou
 4. UI pass: added hover/focus tooltips and a collapsible glossary/legend panel to the dashboard, and split `posture: hold` into `hold` + `accumulate` (user-requested schema change — see above). Tooltips were later rewritten from CSS `::before`/`::after` (which got clipped by `.card`'s `overflow:hidden`) to a single JS-positioned `position:fixed` element — if touching tooltip code, keep it that way, don't revert to the CSS pseudo-element approach.
 5. Analyst-consensus pass: added `analyst_consensus_check` (see schema above) and populated it for all 28 tickers via three background research passes grouped by sector, each explicitly told to prefer named industry-specialist/track-record-filtered ratings over raw consensus. While cross-checking sources, discovered **NIB (iPath Cocoa ETN) was actually delisted by Barclays on 2023-06-14** — it had been sitting in the dataset as a live tactical position the whole time; `notes.core` now leads with an unmissable warning.
 6. Liveness pass: checked all 26 non-NIB tickers for "is this still a tradable instrument" (a distinct question from "is the thesis accurate," which is all prior passes had checked). All 26 confirmed fine. Follow-up research on **JO (iPath Coffee ETN)** raised its status from "unresolved" to "likely delisted" (0 trading volume vs. a 10.82K average, multiple sources calling it "no longer active") — not at NIB's confirmed-certain level, but treated the same way in `notes.core` pending a final broker-side check.
+7. Driver-dominance + earth-science-data pass (2026-07-18): added `driver_dominance` (see "Independent review pass" below) and four new fetch scripts — `fetch_drought.py` (NIDIS/USDM), `fetch_sea_level.py` (NOAA CO-OPS), `fetch_temp_anomaly.py` (NASA GISTEMP), `fetch_wildfire.py` (NASA FIRMS) — the first three confirmed working against live data with zero auth. **NIFC/InciWeb wildfire perimeter data was assessed and NOT built**: its ArcGIS org requires an auth token on every endpoint tested (even metadata-only requests), breaking the no-auth pattern every other script here follows. `fetch_wildfire.py` uses NASA FIRMS instead — a free but not zero-friction alternative (email-only signup for a `NASA_FIRMS_MAP_KEY`, confirmed via NASA's own docs to require no account/password) — and returns point-level active-fire *detections*, not fire *perimeters*/acreage, a coarser but still-primary data type. Not yet run against a real key as of this writing (the user needed to do the signup); confirmed to fail cleanly with clear instructions when the key is absent. The dedicated NOAA sea-level-trends derived-product endpoint (`dpapi.../sealvltrends`) also turned out to be returning 502 Bad Gateway — `fetch_sea_level.py` computes the trend locally from the primary `monthly_mean` product instead (same math NOAA's own product uses, just not depending on their possibly-deprecated endpoint). New primary data was used to strengthen sourcing on the entries Fable flagged as thinnest: LEN (sea_level_coastal previously had zero physical measurement, only insurance-market proxies — now has real tide-gauge trend data showing FL coastal markets rising 2x+ faster than CA ones), CB and AWK/XYL (drought severity data replacing "CAL FIRE-adjacent aggregator" sourcing), CTVA (corroborating USDA crop-condition reads with a second primary source), GNRC/NEE (brief temperature-anomaly context for their secular_warming tag). Deliberately did NOT add this data to CF/NTR/UNG/HD, per Fable's own advice not to spend sourcing effort on entries whose current story is unrelated to the tagged driver (Hormuz war, M&A, consumer bellwether).
+
+## Independent review pass (Fable, 2026-07-18)
+
+The user had a different Claude model (Fable) run an independent 3-part audit (data integrity / methodological soundness / differentiation) with no access to this session's context — deliberately, to catch blind spots a continuation of this same work would miss. It found real, previously-undetected bugs, confirmed both by cross-checking myself before acting:
+
+- **JO (iPath Coffee ETN) was misdated.** It had been logged as "likely delisted, exact redemption wave unconfirmed" — Fable found it was actually delisted the SAME date (2023-06-14) in the SAME 21-ETN wave as NIB. Fixed: `notes.core`, `README.md`, `confidence_stale_after_days` (7→90, matching NIB's "settled fact" treatment).
+- **CANE had a 100x unit error**: "$14.52/lb" sugar should have been "14.52 cents/lb" — TradingEconomics displays this commodity as "USd/lb" (cents) and it got misread as dollars at some point in an earlier pass. Fixed in `notes.signal_check`.
+- **`positioning_check` field misuse, inverted from the intended pattern**: live tickers CANE and UNG had `positioning_check: null` despite having real, current COT data — that data was sitting in `notes.signal_check` instead, which is for qualitative flags, not hard checkable data (see the field-usage rule earlier in this doc). Fixed both entries.
+- **`scripts/check_staleness.py` had a real bug**: `--json` mode returned before reaching the exit-code check, so it always exited 0 regardless of staleness, while human-readable mode always exited 1 (not just on real staleness) because `insurance_reinsurance_loss_estimates` has `fetch_script: null` and can never be automatically satisfied — a manual-only category was permanently poisoning the exit code. Fixed: exit code now only triggers on stale targets or a never-run row that *has* a fetch script; both modes agree.
+
+**Not yet fixed, flagged for a decision:** NIB and JO both still carry `posture: "tactical"`, `direction: "benefit"` — every dashboard filter, stat tile, and badge presents these two dead instruments as live positions; only the `notes.core` prose says otherwise. This is the same gap noted below (no schema value for "inactive"), but Fable's framing sharpened it: it's not a latent risk, it's visibly wrong in the UI today. Needs a decision on the right fix (6th posture value vs. a top-level `active` flag vs. something else) before implementing.
+
+Fable's Part 2/3 findings (methodological critique and differentiation assessment) were substantive. One was acted on directly: Fable's "climate driver tags are becoming decorative" finding (CF/NTR's real story is a Hormuz war, GNRC's is data centers, FCX's is a mine accident, etc.) led to a new `driver_dominance` field (see schema above), populated 2026-07-18 by reading each entry's own existing notes — deliberately no new research, just formalizing a judgment already being made in prose. Distribution across the 26 evaluable (non-delisted) tickers: **8 dominant, 2 contested, 16 secondary** — i.e. only ~31% of the dataset currently has its tagged climate driver as the actual binding variable. This number is now surfaced as its own dashboard stat tile ("Driver-dominant") specifically so the tool can't quietly drift away from its own stated purpose without it showing up as a visible, trending metric. `secondary`/`n/a` entries are visually de-emphasized (opacity, not hidden) on the dashboard rather than excluded — the research value of e.g. CF's fertilizer thesis doesn't disappear just because a war is currently the bigger story.
+
+Fable also weighed in (separately, on request) on bringing in primary climate/earth-science data (as opposed to financial data): its own top pick was that `secular_warming` (8 entries, CF/NTR/UNG/AWK/XYL/NEE/CTVA/GNRC) has zero primary data behind it anywhere in the dataset — recommended NOAA NCEI Global Time Series or NASA GISTEMP. It also vetted 5 candidates the user proposed: build NIFC/InciWeb wildfire, NOAA/NIDIS Drought Monitor, and NOAA tide-gauge sea-level data; build-with-correction on CA/Western snowpack (retarget from GWRS specifically — GWRS runs on groundwater, not a direct Colorado River allocation, per its own entry — to `water_rights_compact` context generally, or prefer USBR Lake Mead/Powell reservoir levels instead); skip SST anomaly data (redundant with the ONI feed `fetch_enso.py` already pulls, since ONI is itself SST-derived). See build-history item 7 below for what actually got built.
 
 ## Known open items / caveats worth remembering
 

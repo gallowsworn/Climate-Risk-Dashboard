@@ -65,7 +65,16 @@ def main():
     refresh_results = check_refresh_log()
 
     stale_targets = [r for r in target_results if r["stale"]]
-    never_run_types = [r for r in refresh_results if r["never_run"]]
+    # Only a "never run" data type with an automated fetch script represents an
+    # actionable gap. A manual-research-only category (fetch_script: null, e.g.
+    # insurance_reinsurance_loss_estimates) has no automated way to ever be
+    # satisfied, so it must not permanently pin the exit code to 1.
+    log = json.loads(REFRESH_LOG_PATH.read_text(encoding="utf-8")) if REFRESH_LOG_PATH.exists() else {"data_types": []}
+    automatable_never_run = [
+        r for r, dt in zip(refresh_results, log.get("data_types", []))
+        if r["never_run"] and dt.get("fetch_script")
+    ]
+    exit_code = 1 if (stale_targets or automatable_never_run) else 0
 
     if args.json:
         json.dump({
@@ -74,7 +83,7 @@ def main():
             "refresh_log": refresh_results,
         }, sys.stdout, indent=2)
         print()
-        return
+        sys.exit(exit_code)
 
     print(f"Staleness check — {today.isoformat()}")
     print("=" * 60)
@@ -94,8 +103,7 @@ def main():
             status = "NEVER RUN" if r["never_run"] else f"last run {r['last_run']}"
             print(f"  [{r['type']:32s}] cadence={r['cadence']:24s} {status}")
 
-    if stale_targets or never_run_types:
-        sys.exit(1)
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":
