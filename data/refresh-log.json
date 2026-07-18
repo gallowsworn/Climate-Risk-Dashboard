@@ -1,0 +1,40 @@
+{
+  "note": "Tracks refresh cadence and last-run timestamps per data type (not per ticker \u2014 per-ticker last_verified lives in targets.json). last_run is null until the corresponding fetch script has actually been run.",
+  "data_types": [
+    {
+      "type": "enso_status",
+      "cadence": "monthly",
+      "source": "NOAA CPC ENSO Diagnostic Discussion; cross-check WMO/JMA/BOM/C3S",
+      "fetch_script": "scripts/fetch_enso.py",
+      "last_run": "2026-07-17T14:18:47"
+    },
+    {
+      "type": "futures_positioning_cot",
+      "cadence": "weekly",
+      "source": "CFTC Commitment of Traders reports",
+      "fetch_script": "scripts/fetch_cot.py",
+      "last_run": "2026-07-17T14:29:48"
+    },
+    {
+      "type": "company_hedging_valuation",
+      "cadence": "quarterly (earnings)",
+      "source": "SEC 10-K/10-Q, earnings call transcripts",
+      "fetch_script": null,
+      "last_run": "2026-07-17T00:00:00"
+    },
+    {
+      "type": "policy_regulatory_status",
+      "cadence": "as-announced; check monthly",
+      "source": "EU Commission (EUDR), NOAA/BOEM (deep-sea mining), state insurance regulators, USDA/India Ministry of Commerce",
+      "fetch_script": null,
+      "last_run": "2026-07-17T00:00:00"
+    },
+    {
+      "type": "insurance_reinsurance_loss_estimates",
+      "cadence": "quarterly",
+      "source": "Aon, Gallagher Re, Munich Re, Swiss Re (flag as interested-party)",
+      "fetch_script": null,
+      "last_run": null
+    }
+  ]
+}

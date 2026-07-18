@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Climate & Ecological Risk Investment Dashboard</title>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-1:      #fcfcfb;
+    --page-plane:     #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+
+    --cat-blue:    #2a78d6;
+    --cat-aqua:    #1baf7a;
+    --cat-yellow:  #eda100;
+    --cat-green:   #008300;
+    --cat-violet:  #4a3aa7;
+
+    --seq-100: #cde2fb; --seq-300: #6da7ec; --seq-500: #256abf;
+
+    --good:     #0ca30c;
+    --warning:  #fab219;
+    --serious:  #ec835a;
+    --critical: #d03b3b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --surface-1:      #1a1a19;
+      --page-plane:     #0d0d0d;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --gridline:       #2c2c2a;
+      --baseline:       #383835;
+      --border:         rgba(255,255,255,0.10);
+
+      --cat-blue:    #3987e5;
+      --cat-aqua:    #199e70;
+      --cat-yellow:  #c98500;
+      --cat-green:   #008300;
+      --cat-violet:  #9085e9;
+
+      --seq-100: #184f95; --seq-300: #2a78d6; --seq-500: #86b6ef;
+
+      --good:     #0ca30c;
+      --warning:  #fab219;
+      --serious:  #ec835a;
+      --critical: #d03b3b;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-1:      #1a1a19;
+    --page-plane:     #0d0d0d;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --gridline:       #2c2c2a;
+    --baseline:       #383835;
+    --border:         rgba(255,255,255,0.10);
+    --cat-blue:    #3987e5;
+    --cat-aqua:    #199e70;
+    --cat-yellow:  #c98500;
+    --cat-green:   #008300;
+    --cat-violet:  #9085e9;
+    --seq-100: #184f95; --seq-300: #2a78d6; --seq-500: #86b6ef;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--page-plane);
+    color: var(--text-primary);
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 24px 20px 64px; }
+
+  header h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  header p.subtitle { color: var(--text-secondary); margin: 0 0 4px; font-size: 0.92rem; }
+  header p.disclaimer {
+    color: var(--text-muted); font-size: 0.8rem; margin: 8px 0 20px;
+    border-left: 3px solid var(--baseline); padding-left: 10px;
+  }
+
+  .theme-toggle {
+    position: absolute; top: 20px; right: 20px;
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text-secondary); font-size: 0.78rem; padding: 6px 10px; cursor: pointer;
+  }
+
+  .stats-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+  .stat-tile {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 16px; min-width: 96px;
+  }
+  .stat-tile .n { font-size: 1.4rem; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .stat-tile .l { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
+  .stat-tile.stale .n { color: var(--critical); }
+
+  .filter-bar {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px; margin-bottom: 18px;
+  }
+  .filter-bar input[type="search"], .filter-bar select {
+    background: var(--page-plane); color: var(--text-primary);
+    border: 1px solid var(--baseline); border-radius: 6px;
+    padding: 6px 8px; font-size: 0.85rem;
+  }
+  .filter-bar label.chk {
+    display: flex; align-items: center; gap: 5px; font-size: 0.82rem; color: var(--text-secondary);
+    padding: 6px 8px; border: 1px solid transparent;
+  }
+  .filter-bar button.reset {
+    margin-left: auto; background: none; border: 1px solid var(--baseline);
+    color: var(--text-secondary); border-radius: 6px; padding: 6px 10px; font-size: 0.8rem; cursor: pointer;
+  }
+  .filter-bar button.reset:hover { background: var(--gridline); }
+  .result-count { font-size: 0.8rem; color: var(--text-muted); margin: 0 0 10px; }
+
+  .card {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px;
+    margin-bottom: 10px; overflow: hidden;
+  }
+  .card-row {
+    display: grid;
+    grid-template-columns: 64px 1fr auto auto auto auto 90px;
+    gap: 12px; align-items: center; padding: 10px 14px; cursor: pointer;
+  }
+  .card-row:hover { background: var(--gridline); }
+  .ticker { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .name-cell .name { font-size: 0.92rem; }
+  .name-cell .sector { font-size: 0.75rem; color: var(--text-muted); }
+  .drivers { display: flex; flex-wrap: wrap; gap: 4px; max-width: 220px; }
+  .chip {
+    font-size: 0.68rem; padding: 2px 6px; border-radius: 999px;
+    background: var(--gridline); color: var(--text-secondary); white-space: nowrap;
+  }
+
+  .badge {
+    font-size: 0.72rem; font-weight: 600; padding: 3px 8px; border-radius: 999px;
+    display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+  }
+  .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+  .badge.direction-benefit { color: var(--good); background: color-mix(in srgb, var(--good) 14%, transparent); }
+  .badge.direction-benefit::before { background: var(--good); }
+  .badge.direction-risk { color: var(--critical); background: color-mix(in srgb, var(--critical) 14%, transparent); }
+  .badge.direction-risk::before { background: var(--critical); }
+  .badge.direction-mixed { color: var(--warning); background: color-mix(in srgb, var(--warning) 20%, transparent); }
+  .badge.direction-mixed::before { background: var(--warning); }
+
+  .badge.posture-hold       { color: var(--cat-blue);   background: color-mix(in srgb, var(--cat-blue) 14%, transparent); }
+  .badge.posture-hold::before       { background: var(--cat-blue); }
+  .badge.posture-watch      { color: var(--cat-aqua);   background: color-mix(in srgb, var(--cat-aqua) 14%, transparent); }
+  .badge.posture-watch::before      { background: var(--cat-aqua); }
+  .badge.posture-tactical   { color: var(--cat-yellow); background: color-mix(in srgb, var(--cat-yellow) 20%, transparent); }
+  .badge.posture-tactical::before   { background: var(--cat-yellow); }
+  .badge.posture-accumulate { color: var(--cat-green);  background: color-mix(in srgb, var(--cat-green) 14%, transparent); }
+  .badge.posture-accumulate::before { background: var(--cat-green); }
+  .badge.posture-hedge      { color: var(--cat-violet); background: color-mix(in srgb, var(--cat-violet) 14%, transparent); }
+  .badge.posture-hedge::before      { background: var(--cat-violet); }
+
+  .risk-dots { display: flex; gap: 3px; align-items: center; }
+  .risk-dots .risk-dot { flex: none; width: 8px; height: 8px; border-radius: 2px; background: var(--gridline); }
+  .risk-dots .risk-dot.filled-low { background: var(--seq-100); }
+  .risk-dots .risk-dot.filled-med { background: var(--seq-300); }
+  .risk-dots .risk-dot.filled-high { background: var(--seq-500); }
+  .risk-label { font-size: 0.7rem; color: var(--text-muted); margin-left: 4px; flex: none; }
+
+  .staleness { font-size: 0.7rem; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+  .staleness.fresh { color: var(--good); background: color-mix(in srgb, var(--good) 12%, transparent); }
+  .staleness.stale { color: var(--critical); background: color-mix(in srgb, var(--critical) 14%, transparent); font-weight: 600; }
+
+  .expand-icon { color: var(--text-muted); font-size: 0.75rem; text-align: right; }
+
+  .card-detail { display: none; padding: 4px 14px 16px; border-top: 1px solid var(--gridline); }
+  .card.open .card-detail { display: block; }
+  .card.open .expand-icon { transform: rotate(180deg); display: inline-block; }
+
+  .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 10px 0; }
+  .detail-field .k { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); margin-bottom: 2px; }
+  .detail-field .v { font-size: 0.85rem; color: var(--text-primary); }
+  .note-block { margin: 10px 0; }
+  .note-block .k { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); margin-bottom: 3px; }
+  .note-block .v { font-size: 0.87rem; color: var(--text-secondary); line-height: 1.5; }
+  .note-block.signal-check .v { color: var(--serious); }
+  .note-block.analyst-check .v { border-left: 2px solid var(--cat-blue); padding-left: 8px; }
+
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+  .error-state {
+    background: var(--surface-1); border: 1px solid var(--critical); border-radius: 8px;
+    padding: 16px; color: var(--text-secondary); font-size: 0.88rem; line-height: 1.6;
+  }
+  .error-state code { background: var(--gridline); padding: 1px 5px; border-radius: 4px; }
+
+  [data-tooltip] { cursor: help; }
+  [data-tooltip]:focus-visible { outline: 2px solid var(--cat-blue); outline-offset: 2px; }
+
+  #tooltipEl {
+    position: fixed; background: var(--text-primary); color: var(--surface-1);
+    padding: 7px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: 400;
+    line-height: 1.45; text-align: left; max-width: 240px;
+    opacity: 0; pointer-events: none; transition: opacity 0.1s ease; z-index: 100;
+  }
+  #tooltipEl.visible { opacity: 1; }
+
+  .legend-toggle {
+    background: none; border: 1px solid var(--baseline);
+    color: var(--text-secondary); border-radius: 6px; padding: 6px 10px; font-size: 0.8rem; cursor: pointer;
+  }
+  .legend-toggle:hover { background: var(--gridline); }
+  .legend-panel {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 16px 16px; margin-bottom: 18px;
+  }
+  .legend-collapse {
+    display: flex; align-items: center; gap: 4px; margin: 0 0 10px auto;
+    background: none; border: 1px solid var(--baseline); border-radius: 6px;
+    color: var(--text-secondary); font-size: 0.74rem; padding: 4px 9px; cursor: pointer;
+  }
+  .legend-collapse:hover { background: var(--gridline); }
+  .legend-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .legend-group h4 {
+    margin: 0 0 8px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted);
+  }
+  .legend-group dl { margin: 0; }
+  .legend-group dt { font-size: 0.82rem; font-weight: 600; margin-top: 6px; }
+  .legend-group dd { margin: 0 0 4px; font-size: 0.78rem; color: var(--text-secondary); line-height: 1.4; }
+
+  @media (max-width: 760px) {
+    .card-row { grid-template-columns: 1fr; gap: 6px; }
+    .expand-icon { text-align: left; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <button class="theme-toggle" id="themeToggle" type="button">Toggle theme</button>
+  <header>
+    <h1>Climate & Ecological Risk Investment Dashboard</h1>
+    <p class="subtitle">Screens US-market-accessible investment targets against climate/ecological risk drivers. El Nino 2026-27 is the current near-term stress test inside a broader multi-driver framework, not the sole organizing principle.</p>
+    <p class="disclaimer">Not financial advice. This is a structured research and decision-support tool, not a signal generator. Every entry carries a sourcing note — where evidence is thin, it says so explicitly.</p>
+  </header>
+
+  <div id="statsRow" class="stats-row"></div>
+
+  <div class="filter-bar" id="filterBar">
+    <input type="search" id="searchInput" placeholder="Search ticker or name..." aria-label="Search">
+    <select id="driverFilter" aria-label="Filter by driver"><option value="">All drivers</option></select>
+    <select id="postureFilter" aria-label="Filter by posture"><option value="">All postures</option></select>
+    <select id="directionFilter" aria-label="Filter by direction"><option value="">All directions</option></select>
+    <select id="sectorFilter" aria-label="Filter by sector"><option value="">All sectors</option></select>
+    <select id="riskFilter" aria-label="Filter by risk level"><option value="">All risk levels</option></select>
+    <select id="thesisFilter" aria-label="Filter by thesis type"><option value="">All thesis types</option></select>
+    <select id="policyFilter" aria-label="Filter by policy stance"><option value="">All policy stances</option></select>
+    <label class="chk"><input type="checkbox" id="staleOnly"> Stale only</label>
+    <button class="legend-toggle" id="legendToggle" type="button" aria-expanded="false">Legend</button>
+    <button class="reset" id="resetFilters" type="button">Reset filters</button>
+  </div>
+
+  <div class="legend-panel" id="legendPanel" hidden>
+    <button class="legend-collapse" id="legendCollapse" type="button">Collapse &#9652;</button>
+    <div class="legend-grid" id="legendGrid"></div>
+  </div>
+
+  <p class="result-count" id="resultCount"></p>
+  <div id="cardContainer"></div>
+</div>
+<div id="tooltipEl" role="tooltip"></div>
+
+<script>
+const DRIVER_KEY = 'ck-rd-theme';
+const themeToggle = document.getElementById('themeToggle');
+function applyStoredTheme() {
+  const stored = localStorage.getItem(DRIVER_KEY);
+  if (stored) document.documentElement.setAttribute('data-theme', stored);
+}
+themeToggle.addEventListener('click', () => {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : (current === 'light' ? null : (matchMedia('(prefers-color-scheme: dark)').matches ? 'light' : 'dark'));
+  if (next) { document.documentElement.setAttribute('data-theme', next); localStorage.setItem(DRIVER_KEY, next); }
+  else { document.documentElement.removeAttribute('data-theme'); localStorage.removeItem(DRIVER_KEY); }
+});
+applyStoredTheme();
+
+let TARGETS = [];
+let DRIVER_LABELS = {};
+
+const GLOSSARY = {
+  direction: {
+    benefit: "The climate/ecological driver is a net positive for this investment thesis.",
+    risk: "The climate/ecological driver is a net negative for this investment thesis.",
+    mixed: "The driver cuts both ways — real upside and downside forces are both active at once.",
+  },
+  posture: {
+    accumulate: "Stronger conviction — actively building or adding to a position.",
+    hold: "Maintain any existing position; not an active buy signal right now.",
+    tactical: "Sized for a specific, time-limited catalyst window, not a long-term hold.",
+    watch: "No position yet — monitoring for a clearer signal before acting.",
+    hedge: "Sized to offset or protect against this risk, not to profit from it directly.",
+  },
+  risk_level: {
+    low: "Lower volatility/uncertainty judged for this specific thesis.",
+    med: "Moderate volatility/uncertainty judged for this specific thesis.",
+    high: "Higher volatility/uncertainty judged for this specific thesis.",
+  },
+  thesis_type: {
+    structural: "A multi-year trend expected to persist regardless of any single cycle.",
+    cyclical: "Tied to a specific, time-limited cycle or catalyst window.",
+  },
+  policy_stance: {
+    tailwind: "The current policy/regulatory environment supports this thesis.",
+    headwind: "The current policy/regulatory environment works against this thesis.",
+    contested: "The policy/regulatory outcome is genuinely unsettled — could go either way.",
+    neutral: "No significant policy/regulatory lever is currently in play.",
+  },
+  remediation_confidence: {
+    high: "Strong evidence the underlying risk is being actively, effectively addressed.",
+    moderate: "Some evidence of an effective response, but not fully proven out.",
+    low: "Little evidence the underlying risk is being effectively addressed yet.",
+    "n/a": "Not applicable — this driver isn't the kind of risk that gets ‘remediated.’",
+  },
+  source_confidence: {
+    corroborated: "Backed by multiple independent sources.",
+    interested_party: "Primarily sourced from a party with a stake in the outcome (e.g. the company itself) — cross-check independently.",
+    state_discretionary: "Depends on a government/regulator decision that could change abruptly.",
+  },
+  staleness: {
+    fresh: "This entry's last_verified date is within its staleness window.",
+    stale: "This entry is past its staleness window and needs a fresh check before being trusted.",
+  },
+};
+const GLOSSARY_GROUP_LABELS = {
+  direction: "Direction",
+  posture: "Posture",
+  risk_level: "Risk level",
+  thesis_type: "Thesis type",
+  policy_stance: "Policy stance",
+  remediation_confidence: "Remediation confidence",
+  source_confidence: "Source confidence",
+  staleness: "Staleness",
+};
+
+function esc(s) { return String(s).replace(/"/g, '&quot;'); }
+
+function tt(category, value) {
+  const text = GLOSSARY[category] && GLOSSARY[category][value];
+  return text ? ` data-tooltip="${esc(text)}" tabindex="0"` : '';
+}
+
+function renderLegend() {
+  const grid = document.getElementById('legendGrid');
+  grid.innerHTML = Object.entries(GLOSSARY).map(([group, values]) => `
+    <div class="legend-group">
+      <h4>${GLOSSARY_GROUP_LABELS[group] || cap(group)}</h4>
+      <dl>
+        ${Object.entries(values).map(([value, text]) => `<dt>${cap(value)}</dt><dd>${text}</dd>`).join('')}
+      </dl>
+    </div>`).join('');
+}
+
+// Single fixed-position tooltip, positioned via JS so it can never be clipped by an
+// ancestor's overflow:hidden (cards clip for rounded-corner/hover-state reasons) and
+// can flip/clamp to stay inside the viewport.
+const tooltipEl = document.getElementById('tooltipEl');
+let tooltipTarget = null;
+
+function positionTooltip(target) {
+  const rect = target.getBoundingClientRect();
+  tooltipEl.textContent = target.getAttribute('data-tooltip');
+  tooltipEl.classList.add('visible');
+  // Measure after setting text/visibility so offsetWidth/Height are accurate.
+  const tw = tooltipEl.offsetWidth, th = tooltipEl.offsetHeight;
+  let top = rect.top - th - 8;
+  let placedBelow = false;
+  if (top < 8) { top = rect.bottom + 8; placedBelow = true; }
+  let left = rect.left + rect.width / 2 - tw / 2;
+  left = Math.max(8, Math.min(left, window.innerWidth - tw - 8));
+  tooltipEl.style.top = `${top}px`;
+  tooltipEl.style.left = `${left}px`;
+  tooltipEl.dataset.placement = placedBelow ? 'below' : 'above';
+}
+
+function hideTooltip() {
+  tooltipEl.classList.remove('visible');
+  tooltipTarget = null;
+}
+
+document.addEventListener('mouseover', e => {
+  const target = e.target.closest('[data-tooltip]');
+  if (target) { tooltipTarget = target; positionTooltip(target); }
+});
+document.addEventListener('mouseout', e => {
+  if (tooltipTarget && e.target.closest('[data-tooltip]') === tooltipTarget) hideTooltip();
+});
+document.addEventListener('focusin', e => {
+  const target = e.target.closest('[data-tooltip]');
+  if (target) { tooltipTarget = target; positionTooltip(target); }
+});
+document.addEventListener('focusout', e => {
+  if (tooltipTarget && e.target.closest('[data-tooltip]') === tooltipTarget) hideTooltip();
+});
+window.addEventListener('scroll', () => { if (tooltipTarget) positionTooltip(tooltipTarget); }, true);
+
+async function loadData() {
+  try {
+    const [targetsRes, taxRes] = await Promise.all([
+      fetch('../data/targets.json'),
+      fetch('../data/driver-taxonomy.json'),
+    ]);
+    if (!targetsRes.ok || !taxRes.ok) throw new Error('Fetch returned non-OK status');
+    TARGETS = await targetsRes.json();
+    const taxonomy = await taxRes.json();
+    (taxonomy.drivers || []).forEach(d => { DRIVER_LABELS[d.key] = d.label; });
+    init();
+  } catch (err) {
+    document.getElementById('cardContainer').innerHTML = `
+      <div class="error-state">
+        <strong>Could not load data/targets.json.</strong><br><br>
+        Browsers block <code>fetch()</code> of local files opened directly via <code>file://</code>.
+        Serve this folder over HTTP instead:<br><br>
+        &bull; Windows, zero dependencies: <code>powershell -ExecutionPolicy Bypass -File scripts\\serve.ps1</code>, then open
+        <code>http://localhost:8000/dashboard/</code><br>
+        &bull; With Python installed: <code>python -m http.server 8000</code> from the project root<br>
+        &bull; VS Code: the "Live Server" extension<br><br>
+        <em>Underlying error: ${(err && err.message) || err}</em>
+      </div>`;
+  }
+}
+
+function daysBetween(a, b) { return Math.floor((b - a) / 86400000); }
+
+function computeStaleness(t) {
+  const today = new Date();
+  const verified = new Date(t.last_verified + 'T00:00:00');
+  const age = daysBetween(verified, today);
+  return { age, stale: age > t.confidence_stale_after_days };
+}
+
+function uniqueSorted(arr) { return [...new Set(arr)].sort(); }
+
+function populateFilterOptions() {
+  const driverSet = new Set();
+  TARGETS.forEach(t => t.primary_drivers.forEach(d => driverSet.add(d)));
+  fillSelect('driverFilter', [...driverSet].sort().map(k => [k, DRIVER_LABELS[k] || k]));
+  fillSelect('postureFilter', uniqueSorted(TARGETS.map(t => t.posture)).map(v => [v, cap(v)]));
+  fillSelect('directionFilter', uniqueSorted(TARGETS.map(t => t.direction)).map(v => [v, cap(v)]));
+  fillSelect('sectorFilter', uniqueSorted(TARGETS.map(t => t.sector)).map(v => [v, v]));
+  fillSelect('riskFilter', ['low', 'med', 'high'].map(v => [v, cap(v)]));
+  fillSelect('thesisFilter', uniqueSorted(TARGETS.map(t => t.thesis_type)).map(v => [v, cap(v)]));
+  fillSelect('policyFilter', uniqueSorted(TARGETS.map(t => t.policy_stance)).map(v => [v, cap(v)]));
+}
+
+function fillSelect(id, pairs) {
+  const sel = document.getElementById(id);
+  pairs.forEach(([value, label]) => {
+    const opt = document.createElement('option');
+    opt.value = value; opt.textContent = label;
+    sel.appendChild(opt);
+  });
+}
+
+function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, ' ') : s; }
+
+function renderStats() {
+  const total = TARGETS.length;
+  const staleCount = TARGETS.filter(t => computeStaleness(t).stale).length;
+  const postureCounts = {};
+  TARGETS.forEach(t => { postureCounts[t.posture] = (postureCounts[t.posture] || 0) + 1; });
+
+  const tiles = [
+    { n: total, l: 'Targets' },
+    { n: staleCount, l: 'Stale', stale: staleCount > 0 },
+    { n: postureCounts.accumulate || 0, l: 'Accumulate' },
+    { n: postureCounts.hold || 0, l: 'Hold' },
+    { n: postureCounts.tactical || 0, l: 'Tactical' },
+    { n: postureCounts.watch || 0, l: 'Watch' },
+    { n: postureCounts.hedge || 0, l: 'Hedge' },
+  ];
+  document.getElementById('statsRow').innerHTML = tiles.map(t =>
+    `<div class="stat-tile${t.stale ? ' stale' : ''}"><div class="n">${t.n}</div><div class="l">${t.l}</div></div>`
+  ).join('');
+}
+
+function riskDots(level) {
+  const map = { low: 1, med: 2, high: 3 };
+  const filled = map[level] || 0;
+  const cls = level === 'low' ? 'filled-low' : level === 'med' ? 'filled-med' : 'filled-high';
+  let dots = '';
+  for (let i = 0; i < 3; i++) dots += `<span class="risk-dot ${i < filled ? cls : ''}"></span>`;
+  return `<div class="risk-dots">${dots}<span class="risk-label">${cap(level)}</span></div>`;
+}
+
+function fieldRow(k, v, tooltip) {
+  if (v === null || v === undefined || v === '') return '';
+  const kAttrs = tooltip ? ` data-tooltip="${esc(tooltip)}" tabindex="0"` : '';
+  return `<div class="detail-field"><div class="k"${kAttrs}>${k}</div><div class="v">${v}</div></div>`;
+}
+
+function noteBlock(k, v, extraClass) {
+  if (!v) return '';
+  return `<div class="note-block ${extraClass || ''}"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+}
+
+function renderCard(t) {
+  const { age, stale } = computeStaleness(t);
+  const driverChips = t.primary_drivers.map(d => `<span class="chip">${DRIVER_LABELS[d] || d}</span>`).join('');
+  return `
+    <div class="card" data-ticker="${t.ticker}">
+      <div class="card-row" role="button" tabindex="0" aria-expanded="false">
+        <div class="ticker">${t.ticker}</div>
+        <div class="name-cell"><div class="name">${t.name}</div><div class="sector">${t.sector}</div></div>
+        <div class="drivers">${driverChips}</div>
+        <span class="badge direction-${t.direction}"${tt('direction', t.direction)}>${cap(t.direction)}</span>
+        <span class="badge posture-${t.posture}"${tt('posture', t.posture)}>${cap(t.posture)}</span>
+        <span class="staleness ${stale ? 'stale' : 'fresh'}"${tt('staleness', stale ? 'stale' : 'fresh')}>${stale ? `Stale (${age}d)` : `Fresh (${age}d)`}</span>
+        <div class="expand-icon">&#9660;</div>
+      </div>
+      <div class="card-detail">
+        <div class="detail-grid">
+          ${fieldRow('Time horizon', cap(t.time_horizon))}
+          ${fieldRow('Risk level', riskDots(t.risk_level), 'How volatile/uncertain this specific thesis is judged to be — not a formal beta calculation.')}
+          ${fieldRow('Thesis type', cap(t.thesis_type), GLOSSARY.thesis_type[t.thesis_type])}
+          ${fieldRow('Policy stance', cap(t.policy_stance), GLOSSARY.policy_stance[t.policy_stance])}
+          ${fieldRow('Remediation confidence', cap(t.remediation_confidence), GLOSSARY.remediation_confidence[t.remediation_confidence])}
+          ${fieldRow('Household demand effect', t.household_demand_effect ? cap(t.household_demand_effect) : null)}
+          ${fieldRow('Source confidence', cap(t.source_confidence), GLOSSARY.source_confidence[t.source_confidence])}
+          ${fieldRow('Last verified', `${t.last_verified} &middot; stale after ${t.confidence_stale_after_days}d`)}
+        </div>
+        ${noteBlock('Core thesis', t.notes.core)}
+        ${noteBlock('Policy', t.notes.policy)}
+        ${noteBlock('Household demand', t.notes.demand)}
+        ${noteBlock('Positioning check', t.positioning_check)}
+        ${noteBlock('Hedging check', t.hedging_check)}
+        ${noteBlock('Backtest check', t.backtest_check)}
+        ${noteBlock('Analyst consensus check', t.analyst_consensus_check, 'analyst-check')}
+        ${noteBlock('Signal check', t.notes.signal_check, 'signal-check')}
+        ${noteBlock('Exit signal', t.notes.exit_signal)}
+        ${noteBlock('Sourcing', t.notes.sourcing)}
+      </div>
+    </div>`;
+}
+
+function getFilters() {
+  return {
+    search: document.getElementById('searchInput').value.trim().toLowerCase(),
+    driver: document.getElementById('driverFilter').value,
+    posture: document.getElementById('postureFilter').value,
+    direction: document.getElementById('directionFilter').value,
+    sector: document.getElementById('sectorFilter').value,
+    risk: document.getElementById('riskFilter').value,
+    thesis: document.getElementById('thesisFilter').value,
+    policy: document.getElementById('policyFilter').value,
+    staleOnly: document.getElementById('staleOnly').checked,
+  };
+}
+
+function applyFilters() {
+  const f = getFilters();
+  const filtered = TARGETS.filter(t => {
+    if (f.search && !(t.ticker.toLowerCase().includes(f.search) || t.name.toLowerCase().includes(f.search))) return false;
+    if (f.driver && !t.primary_drivers.includes(f.driver)) return false;
+    if (f.posture && t.posture !== f.posture) return false;
+    if (f.direction && t.direction !== f.direction) return false;
+    if (f.sector && t.sector !== f.sector) return false;
+    if (f.risk && t.risk_level !== f.risk) return false;
+    if (f.thesis && t.thesis_type !== f.thesis) return false;
+    if (f.policy && t.policy_stance !== f.policy) return false;
+    if (f.staleOnly && !computeStaleness(t).stale) return false;
+    return true;
+  });
+
+  const container = document.getElementById('cardContainer');
+  document.getElementById('resultCount').textContent = `${filtered.length} of ${TARGETS.length} targets`;
+  container.innerHTML = filtered.length
+    ? filtered.map(renderCard).join('')
+    : `<div class="empty-state">No targets match the current filters.</div>`;
+
+  container.querySelectorAll('.card-row').forEach(row => {
+    const toggle = () => {
+      const card = row.closest('.card');
+      const open = card.classList.toggle('open');
+      row.setAttribute('aria-expanded', open ? 'true' : 'false');
+    };
+    row.addEventListener('click', toggle);
+    row.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+  });
+}
+
+function init() {
+  populateFilterOptions();
+  renderStats();
+  renderLegend();
+  applyFilters();
+  document.getElementById('filterBar').addEventListener('input', applyFilters);
+  document.getElementById('filterBar').addEventListener('change', applyFilters);
+  document.getElementById('resetFilters').addEventListener('click', () => {
+    document.querySelectorAll('.filter-bar select').forEach(s => s.value = '');
+    document.getElementById('searchInput').value = '';
+    document.getElementById('staleOnly').checked = false;
+    applyFilters();
+  });
+  const legendPanel = document.getElementById('legendPanel');
+  const legendToggle = document.getElementById('legendToggle');
+  function setLegendOpen(open) {
+    legendPanel.hidden = !open;
+    legendToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  legendToggle.addEventListener('click', () => setLegendOpen(legendPanel.hidden));
+  document.getElementById('legendCollapse').addEventListener('click', () => setLegendOpen(false));
+}
+
+loadData();
+</script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+{
+  "standing_principle": "Across water rights, grid reliability, and managed retreat, the private-capital or market-based response consistently shows higher remediation confidence than the formal government policy process. Weight 'what capital is already doing' over 'what has been proposed' when scoring remediation confidence.",
+  "drivers": [
+    {
+      "key": "enso",
+      "label": "ENSO (El Nino / La Nina)",
+      "time_horizon": "Months to 2 years",
+      "remediation_confidence": "n/a",
+      "note": "Original organizing frame for this build; now one input among several rather than the sole driver."
+    },
+    {
+      "key": "secular_warming",
+      "label": "Secular warming",
+      "time_horizon": "Multi-decade",
+      "remediation_confidence": "n/a",
+      "note": "Heat-stress trends that persist independent of ENSO phase."
+    },
+    {
+      "key": "wildfire_drought_baseline",
+      "label": "Wildfire / drought baseline",
+      "time_horizon": "5-20 years",
+      "remediation_confidence": "low",
+      "note": "CA, Mediterranean, and Australia trending worse regardless of ENSO phase."
+    },
+    {
+      "key": "water_scarcity",
+      "label": "Water scarcity",
+      "time_horizon": "Multi-decade",
+      "remediation_confidence": "low (policy) / higher where private capital is already deploying",
+      "note": "Aquifer depletion, snowpack decline."
+    },
+    {
+      "key": "sea_level_coastal",
+      "label": "Sea level / coastal",
+      "time_horizon": "Multi-decade",
+      "remediation_confidence": "low",
+      "note": "Slow-moving physically, but already repricing insurance and real estate markets."
+    },
+    {
+      "key": "ecosystem_service",
+      "label": "Ecosystem service loss",
+      "time_horizon": "Variable, often irreversible",
+      "remediation_confidence": "n/a",
+      "note": "Coral, fisheries, pollinators — thin, indirect investable link. Flag compounding factors explicitly rather than attributing causation to a single driver (e.g. pollinator decline is compounded by, not caused by, El Nino)."
+    },
+    {
+      "key": "water_rights_compact",
+      "label": "Water rights / compact disputes",
+      "time_horizon": "Near-term catalyst (2026)",
+      "remediation_confidence": "low",
+      "note": "Colorado River Compact is the active case study."
+    },
+    {
+      "key": "grid_reliability",
+      "label": "Grid reliability",
+      "time_horizon": "Ongoing, worsening",
+      "remediation_confidence": "low (policy) / high (private capital)",
+      "note": "Texas/ERCOT is the case study — battery storage buildout is the de facto fix, ahead of formal policy."
+    },
+    {
+      "key": "logistics_disruption",
+      "label": "Logistics disruption",
+      "time_horizon": "Structural, currently secondary",
+      "remediation_confidence": "n/a",
+      "note": "Trade policy currently outweighs climate as the primary disruption driver."
+    },
+    {
+      "key": "managed_retreat",
+      "label": "Managed retreat",
+      "time_horizon": "Slow, multi-decade",
+      "remediation_confidence": "low (policy) / higher (insurance repricing)",
+      "note": "The insurance market is the faster-moving, higher-confidence signal relative to formal retreat policy."
+    },
+    {
+      "key": "critical_minerals",
+      "label": "Critical minerals",
+      "time_horizon": "Fast-moving",
+      "remediation_confidence": "high (US policy execution) / low (international framework)",
+      "note": "China export controls; FORGE coalition and similar reshoring efforts."
+    },
+    {
+      "key": "deep_sea_mining",
+      "label": "Deep-sea mining",
+      "time_horizon": "Very fast, monthly cadence",
+      "remediation_confidence": "high (US unilateral action)",
+      "note": "NOAA/DSHMRA permitting pathway moving faster than the stalled ISA Mining Code process."
+    },
+    {
+      "key": "carbon_border_adjustment",
+      "label": "Carbon border adjustment",
+      "time_horizon": "Structural, multi-year",
+      "remediation_confidence": "moderate",
+      "note": "EU CBAM is implemented; treat as a modifier on EU-exposed names, not a standalone thesis."
+    }
+  ]
+}

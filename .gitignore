@@ -1,0 +1,6 @@
+# Local Claude Code state, not project content
+.claude/
+
+# Regenerated caches from scripts/fetch_*.py
+data/cot-cache.json
+data/enso-status.json
