@@ -32,9 +32,9 @@
     {
       "type": "insurance_reinsurance_loss_estimates",
       "cadence": "quarterly",
-      "source": "Aon '2026 Climate and Catastrophe Insight' report and Swiss Re sigma No. 1/2026 (flag as interested-party; not a live API \u2014 these are periodic published reports, manual research not a fetch script). Gallagher Re and Munich Re not yet pulled from \u2014 Aon and Swiss Re were sufficient for this pass and cross-corroborated on the LA wildfire loss figure.",
+      "source": "Aon '2026 Climate and Catastrophe Insight' report, Swiss Re sigma No. 1/2026, Gallagher Re Natural Catastrophe and Climate Report (full-year 2025, published Jan 21, 2026), and Munich Re's full-year 2025 nat-cat press release/factsheet (Jan 13, 2026) \u2014 all four flagged interested_party; not a live API, these are periodic published reports, manual research not a fetch script. All four now pulled from as of 2026-07-18. 3-of-4 corroborate on the 2025 global insured cat loss total (Aon $127B, Swiss Re ~$127B, Gallagher Re $129B); Munich Re diverges at $108B, a real ~16% methodological gap flagged rather than averaged away. The Jan 2025 Palisades/Eaton wildfire insured-loss figure has strong 4-way corroboration ($40-41B across all four sources).",
       "fetch_script": null,
-      "last_run": "2026-07-18T00:00:00"
+      "last_run": "2026-07-19T00:00:00"
     },
     {
       "type": "drought_status",
