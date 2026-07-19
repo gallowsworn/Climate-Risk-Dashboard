@@ -236,7 +236,8 @@ flagging as thin/indirect on arrival, not just carried-forward-and-untested:
 | Drought status | Weekly | NIDIS/US Drought Monitor — `scripts/fetch_drought.py` |
 | Sea level trend | Quarterly (slow-moving) | NOAA CO-OPS tide gauges — `scripts/fetch_sea_level.py` |
 | Global temperature anomaly | Monthly | NASA GISTEMP — `scripts/fetch_temp_anomaly.py` |
-| Wildfire (active-fire detections) | On-demand | NASA FIRMS, California — `scripts/fetch_wildfire.py` (needs a free `NASA_FIRMS_MAP_KEY`) |
+| Wildfire (active-fire detections) | On-demand | NASA FIRMS, Western US — `scripts/fetch_wildfire.py` (needs a free `NASA_FIRMS_MAP_KEY`) |
+| ENSO commodity-price backtest | As-needed (historical analysis, not a live signal) | NOAA CPC ONI + World Bank Pink Sheet — `scripts/backtest_enso.py` (needs `pip install openpyxl`) |
 
 ## Earth-science data sources (added 2026-07-18)
 
