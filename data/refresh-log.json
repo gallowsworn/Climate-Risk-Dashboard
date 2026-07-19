@@ -70,6 +70,13 @@
       "source": "NOAA CPC ONI (full historical series) + World Bank Pink Sheet CMO-Historical-Data-Monthly.xlsx",
       "fetch_script": "scripts/backtest_enso.py",
       "last_run": "2026-07-18T13:25:31"
+    },
+    {
+      "type": "posture_performance_log",
+      "cadence": "weekly or monthly (forward-looking accumulation \u2014 no historical backfill possible; each run appends a snapshot, doesn't overwrite one)",
+      "source": "Yahoo Finance chart JSON endpoint (unofficial, unauthenticated \u2014 not a documented/published API like the other sources here; SPY + a per-sector benchmark ETF where one reasonably exists, see scripts/log_posture_performance.py's SECTOR_BENCHMARKS map)",
+      "fetch_script": "scripts/log_posture_performance.py",
+      "last_run": "2026-07-18T21:12:14"
     }
   ]
 }

@@ -131,9 +131,10 @@
   }
   .card-row {
     display: grid;
-    grid-template-columns: 64px 1fr auto auto auto auto 90px;
+    grid-template-columns: 64px 1fr auto auto 90px 20px;
     gap: 12px; align-items: center; padding: 10px 14px; cursor: pointer;
   }
+  .badges { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
   .card-row:hover { background: var(--gridline); }
   .ticker { font-weight: 700; font-variant-numeric: tabular-nums; }
   .name-cell .name { font-size: 0.92rem; }
@@ -177,6 +178,9 @@
   .badge.dominance-secondary::before { background: var(--text-muted); }
   .badge.dominance-na        { color: var(--text-muted);  background: color-mix(in srgb, var(--text-muted) 10%, transparent); }
   .badge.dominance-na::before        { background: var(--text-muted); }
+
+  .badge.cluster-flag { color: var(--warning); background: color-mix(in srgb, var(--warning) 16%, transparent); }
+  .badge.cluster-flag::before { background: var(--warning); }
 
   /* De-emphasize (not hide) rows where the tagged climate driver isn't currently
      the binding variable in the thesis — still filterable/readable, just visually
@@ -315,6 +319,7 @@ applyStoredTheme();
 
 let TARGETS = [];
 let DRIVER_LABELS = {};
+let CLUSTERS = [];
 
 const GLOSSARY = {
   direction: {
@@ -366,6 +371,9 @@ const GLOSSARY = {
     secondary: "A clearly different, named factor (not the tagged driver) is what's actually moving this thesis right now.",
     "n/a": "Not applicable — this ticker is delisted, so there's no current thesis to evaluate.",
   },
+  concentration_cluster: {
+    correlated: "This ticker's CURRENT real story is shared with at least one other ticker in the dataset — the same underlying factor, not just the same sector or tagged driver. Sometimes that means both move together (e.g. two names exposed to the same geopolitical shock); sometimes it means they move in OPPOSITE directions off the same fact (e.g. a quiet hurricane season helping one and hurting another). Hover/focus the badge for which ticker(s) it's shared with, or expand the card for the full explanation under 'Concentration cluster.'",
+  },
 };
 const GLOSSARY_GROUP_LABELS = {
   direction: "Direction",
@@ -377,6 +385,7 @@ const GLOSSARY_GROUP_LABELS = {
   source_confidence: "Source confidence",
   staleness: "Staleness",
   driver_dominance: "Driver dominance",
+  concentration_cluster: "Concentration cluster",
 };
 
 function esc(s) { return String(s).replace(/"/g, '&quot;'); }
@@ -442,14 +451,17 @@ window.addEventListener('scroll', () => { if (tooltipTarget) positionTooltip(too
 
 async function loadData() {
   try {
-    const [targetsRes, taxRes] = await Promise.all([
+    const [targetsRes, taxRes, clustersRes] = await Promise.all([
       fetch('../data/targets.json'),
       fetch('../data/driver-taxonomy.json'),
+      fetch('../data/concentration-clusters.json'),
     ]);
-    if (!targetsRes.ok || !taxRes.ok) throw new Error('Fetch returned non-OK status');
+    if (!targetsRes.ok || !taxRes.ok || !clustersRes.ok) throw new Error('Fetch returned non-OK status');
     TARGETS = await targetsRes.json();
     const taxonomy = await taxRes.json();
     (taxonomy.drivers || []).forEach(d => { DRIVER_LABELS[d.key] = d.label; });
+    const clusterData = await clustersRes.json();
+    CLUSTERS = clusterData.clusters || [];
     init();
   } catch (err) {
     document.getElementById('cardContainer').innerHTML = `
@@ -556,18 +568,44 @@ function noteBlock(k, v, extraClass) {
   return `<div class="note-block ${extraClass || ''}"><div class="k">${k}</div><div class="v">${v}</div></div>`;
 }
 
+function clustersForTicker(ticker) {
+  return CLUSTERS.filter(c => c.tickers.includes(ticker) || (c.unconfirmed_tickers || []).includes(ticker));
+}
+
+function clusterTooltip(clusters, ticker) {
+  return clusters.map(c => {
+    const others = [...c.tickers, ...(c.unconfirmed_tickers || [])].filter(tk => tk !== ticker);
+    const unconfirmedNote = (c.unconfirmed_tickers || []).includes(ticker) ? ' (unconfirmed member)' : '';
+    return `${c.label}${unconfirmedNote} — shares this with ${others.join(', ')}`;
+  }).join(' | ');
+}
+
 function renderCard(t) {
   const { age, stale } = computeStaleness(t);
   const driverChips = t.primary_drivers.map(d => `<span class="chip">${DRIVER_LABELS[d] || d}</span>`).join('');
+  const clusters = clustersForTicker(t.ticker);
+  const clusterBadge = clusters.length
+    ? `<span class="badge cluster-flag" data-tooltip="${esc(clusterTooltip(clusters, t.ticker))}" tabindex="0">Correlated</span>`
+    : '';
+  const clusterDetail = clusters.length
+    ? noteBlock('Concentration cluster', clusters.map(c => {
+        const others = [...c.tickers, ...(c.unconfirmed_tickers || [])].filter(tk => tk !== t.ticker);
+        const unconfirmedNote = (c.unconfirmed_tickers || []).includes(t.ticker) ? ' — flagged as an unconfirmed likely member, not asserted' : '';
+        return `<strong>${c.label}</strong> (shared with ${others.join(', ')}${unconfirmedNote}): ${c.detail}`;
+      }).join('<br><br>'), 'signal-check')
+    : '';
   return `
     <div class="card" data-ticker="${t.ticker}">
       <div class="card-row dominance-${slug(t.driver_dominance)}" role="button" tabindex="0" aria-expanded="false">
         <div class="ticker">${t.ticker}</div>
         <div class="name-cell"><div class="name">${t.name}</div><div class="sector">${t.sector}</div></div>
         <div class="drivers">${driverChips}</div>
-        <span class="badge direction-${t.direction}"${tt('direction', t.direction)}>${cap(t.direction)}</span>
-        <span class="badge posture-${t.posture}"${tt('posture', t.posture)}>${cap(t.posture)}</span>
-        <span class="badge dominance-${slug(t.driver_dominance)}"${tt('driver_dominance', t.driver_dominance)}>${cap(t.driver_dominance)}</span>
+        <div class="badges">
+          <span class="badge direction-${t.direction}"${tt('direction', t.direction)}>${cap(t.direction)}</span>
+          <span class="badge posture-${t.posture}"${tt('posture', t.posture)}>${cap(t.posture)}</span>
+          <span class="badge dominance-${slug(t.driver_dominance)}"${tt('driver_dominance', t.driver_dominance)}>${cap(t.driver_dominance)}</span>
+          ${clusterBadge}
+        </div>
         <span class="staleness ${stale ? 'stale' : 'fresh'}"${tt('staleness', stale ? 'stale' : 'fresh')}>${stale ? `Stale (${age}d)` : `Fresh (${age}d)`}</span>
         <div class="expand-icon">&#9660;</div>
       </div>
@@ -587,6 +625,7 @@ function renderCard(t) {
         ${noteBlock('Policy', t.notes.policy)}
         ${noteBlock('Household demand', t.notes.demand)}
         ${noteBlock('Driver dominance rationale', t.driver_dominance_note)}
+        ${clusterDetail}
         ${noteBlock('Positioning check', t.positioning_check)}
         ${noteBlock('Hedging check', t.hedging_check)}
         ${noteBlock('Backtest check', t.backtest_check)}

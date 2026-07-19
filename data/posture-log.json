@@ -1,0 +1,303 @@
+{
+  "sector_benchmark_map": {
+    "Ag trading": "MOO",
+    "Agriculture inputs": "MOO",
+    "Aquaculture inputs": null,
+    "Consumer staples": "XLP",
+    "Critical minerals": "REMX",
+    "Deep-sea mining": null,
+    "Energy": "XLE",
+    "Fertilizer": "XLB",
+    "Grid infrastructure": "GRID",
+    "Homebuilding": "ITB",
+    "Insurance": "KIE",
+    "Mining": "XME",
+    "Resilience & rebuild": "XHB",
+    "Soft commodities": null,
+    "Utilities": "XLU",
+    "Water infrastructure": "PHO"
+  },
+  "runs": [
+    {
+      "date": "2026-07-18",
+      "benchmark_prices": {
+        "GRID": 177.85,
+        "ITB": 97.33,
+        "KIE": 64.17,
+        "MOO": 82.53,
+        "PHO": 69.03,
+        "REMX": 72.67,
+        "SPY": 743.29,
+        "XHB": 108.25,
+        "XLB": 50.53,
+        "XLE": 57.68,
+        "XLP": 85.19,
+        "XLU": 45.17,
+        "XME": 98.35
+      },
+      "tickers": [
+        {
+          "ticker": "CF",
+          "posture": "hold",
+          "sector": "Fertilizer",
+          "price": 121.42,
+          "price_as_of": "2026-07-17",
+          "spy_price": 743.29,
+          "sector_benchmark": "XLB",
+          "sector_benchmark_price": 50.53
+        },
+        {
+          "ticker": "NTR",
+          "posture": "hold",
+          "sector": "Fertilizer",
+          "price": 67.28,
+          "price_as_of": "2026-07-17",
+          "spy_price": 743.29,
+          "sector_benchmark": "XLB",
+          "sector_benchmark_price": 50.53
+        },
+        {
+          "ticker": "MOS",
+          "posture": "watch",
+          "sector": "Fertilizer",
+          "price": 22.13,
+          "price_as_of": "2026-07-17",
+          "spy_price": 743.29,
+          "sector_benchmark": "XLB",
+          "sector_benchmark_price": 50.53
+        },
+        {
+          "ticker": "CANE",
+          "posture": "tactical",
+          "sector": "Soft commodities",
+          "price": 9.74,
+          "price_as_of": "2026-07-17",
+          "spy_price": 743.29,
+          "sector_benchmark": null,
+          "sector_benchmark_price": null
+        },
+        {
+          "ticker": "DBA",
+          "posture": "tactical",
+          "sector": "Soft commodities",
+          "price": 27.84,
+          "price_as_of": "2026-07-17",
+          "spy_price": 743.29,
+          "sector_benchmark": null,
+          "sector_benchmark_price": null
+        },
+        {
+          "ticker": "HSY",
+          "posture": "watch",
+          "sector": "Consumer staples",
+          "price": 171.42,
+          "price_as_of": "2026-07-17",
+          "spy_price": 743.29,
+          "sector_benchmark": "XLP",
+          "sector_benchmark_price": 85.19
+        },
+        {
+          "ticker": "MDLZ",
+          "posture": "watch",
+          "sector": "Consumer staples",
+          "price": 61.0,
+          "price_as_of": "2026-07-17",
+          "spy_price": 743.29,
+          "sector_benchmark": "XLP",
+          "sector_benchmark_price": 85.19
+        },
+        {
+          "ticker": "FCX",
+          "posture": "watch",
+          "sector": "Mining",
+          "price": 58.38,
+          "price_as_of": "2026-07-17",
+          "spy_price": 743.29,
+          "sector_benchmark": "XME",
+          "sector_benchmark_price": 98.35
+        },
+        {
+          "ticker": "SCCO",
+          "posture": "watch",
+          "sector": "Mining",
+          "price": 172.48,
+          "price_as_of": "2026-07-17",
+          "spy_price": 743.29,
+          "sector_benchmark": "XME",
+          "sector_benchmark_price": 98.35
+        },
+        {
+          "ticker": "UNG",
+          "posture": "tactical",
+          "sector": "Energy",
+          "price": 10.51,
+          "price_as_of": "2026-07-17",
+          "spy_price": 743.29,
+          "sector_benchmark": "XLE",
+          "sector_benchmark_price": 57.68
+        },
+        {
+          "ticker": "CB",
+          "posture": "watch",
+          "sector": "Insurance",
+          "price": 352.16,
+          "price_as_of": "2026-07-17",
+          "spy_price": 743.29,
+          "sector_benchmark": "KIE",
+          "sector_benchmark_price": 64.17
+        },
+        {
+          "ticker": "AWK",
+          "posture": "accumulate",
+          "sector": "Water infrastructure",
+          "price": 135.11,
+          "price_as_of": "2026-07-17",
+          "spy_price": 743.29,
+          "sector_benchmark": "PHO",
+          "sector_benchmark_price": 69.03
+        },
+        {
+          "ticker": "XYL",
+          "posture": "accumulate",
+          "sector": "Water infrastructure",
+          "price": 122.78,
+          "price_as_of": "2026-07-17",
+          "spy_price": 743.29,
+          "sector_benchmark": "PHO",
+          "sector_benchmark_price": 69.03
+        },
+        {
+          "ticker": "BG",
+          "posture": "watch",
+          "sector": "Ag trading",
+          "price": 119.15,
+          "price_as_of": "2026-07-17",
+          "spy_price": 743.29,
+          "sector_benchmark": "MOO",
+          "sector_benchmark_price": 82.53
+        },
+        {
+          "ticker": "GNRC",
+          "posture": "hold",
+          "sector": "Resilience & rebuild",
+          "price": 214.91,
+          "price_as_of": "2026-07-17",
+          "spy_price": 743.29,
+          "sector_benchmark": "XHB",
+          "sector_benchmark_price": 108.25
+        },
+        {
+          "ticker": "BLDR",
+          "posture": "tactical",
+          "sector": "Resilience & rebuild",
+          "price": 74.26,
+          "price_as_of": "2026-07-17",
+          "spy_price": 743.29,
+          "sector_benchmark": "XHB",
+          "sector_benchmark_price": 108.25
+        },
+        {
+          "ticker": "HD",
+          "posture": "watch",
+          "sector": "Resilience & rebuild",
+          "price": 338.87,
+          "price_as_of": "2026-07-17",
+          "spy_price": 743.29,
+          "sector_benchmark": "XHB",
+          "sector_benchmark_price": 108.25
+        },
+        {
+          "ticker": "LEN",
+          "posture": "hedge",
+          "sector": "Homebuilding",
+          "price": 83.89,
+          "price_as_of": "2026-07-17",
+          "spy_price": 743.29,
+          "sector_benchmark": "ITB",
+          "sector_benchmark_price": 97.33
+        },
+        {
+          "ticker": "TMC",
+          "posture": "tactical",
+          "sector": "Deep-sea mining",
+          "price": 3.74,
+          "price_as_of": "2026-07-17",
+          "spy_price": 743.29,
+          "sector_benchmark": null,
+          "sector_benchmark_price": null
+        },
+        {
+          "ticker": "MP",
+          "posture": "accumulate",
+          "sector": "Critical minerals",
+          "price": 45.24,
+          "price_as_of": "2026-07-17",
+          "spy_price": 743.29,
+          "sector_benchmark": "REMX",
+          "sector_benchmark_price": 72.67
+        },
+        {
+          "ticker": "NEE",
+          "posture": "hold",
+          "sector": "Utilities",
+          "price": 88.8,
+          "price_as_of": "2026-07-17",
+          "spy_price": 743.29,
+          "sector_benchmark": "XLU",
+          "sector_benchmark_price": 45.17
+        },
+        {
+          "ticker": "FLNC",
+          "posture": "watch",
+          "sector": "Grid infrastructure",
+          "price": 14.07,
+          "price_as_of": "2026-07-17",
+          "spy_price": 743.29,
+          "sector_benchmark": "GRID",
+          "sector_benchmark_price": 177.85
+        },
+        {
+          "ticker": "PWR",
+          "posture": "hold",
+          "sector": "Grid infrastructure",
+          "price": 628.53,
+          "price_as_of": "2026-07-17",
+          "spy_price": 743.29,
+          "sector_benchmark": "GRID",
+          "sector_benchmark_price": 177.85
+        },
+        {
+          "ticker": "CTVA",
+          "posture": "watch",
+          "sector": "Agriculture inputs",
+          "price": 87.3,
+          "price_as_of": "2026-07-17",
+          "spy_price": 743.29,
+          "sector_benchmark": "MOO",
+          "sector_benchmark_price": 82.53
+        },
+        {
+          "ticker": "CSNVY",
+          "posture": "watch",
+          "sector": "Aquaculture inputs",
+          "price": 22.81,
+          "price_as_of": "2026-07-17",
+          "spy_price": 743.29,
+          "sector_benchmark": null,
+          "sector_benchmark_price": null
+        },
+        {
+          "ticker": "GWRS",
+          "posture": "watch",
+          "sector": "Water infrastructure",
+          "price": 7.07,
+          "price_as_of": "2026-07-17",
+          "spy_price": 743.29,
+          "sector_benchmark": "PHO",
+          "sector_benchmark_price": 69.03
+        }
+      ],
+      "failed_tickers": []
+    }
+  ]
+}

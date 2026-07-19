@@ -1,0 +1,41 @@
+{
+  "note": "Cross-ticker groupings where the CURRENT real story (per each entry's own driver_dominance_note and notes, not new research) is shared across multiple tickers. Individually, scanning tickers one at a time hides this — several 'different' names in this dataset are actually the same underlying bet wearing different labels, or the same fact cutting through two tickers in opposite directions. Synthesized 2026-07-18, same discipline as driver_dominance: derived from reasoning already written into targets.json at write time, not a separate research task. type: 'aligned' = same direction if the shared factor moves; 'diverging' = opposite direction; 'shared_category' = not one shared event, but the same KIND of non-driver story counted as if it were independent diversification.",
+  "clusters": [
+    {
+      "id": "hormuz_gas_shock",
+      "label": "2026 Strait of Hormuz gas-price shock",
+      "type": "aligned",
+      "tickers": ["CF", "NTR"],
+      "detail": "Both entries' own driver_dominance_note name this explicitly as the current binding variable: elevated Asian LNG/nitrogen prices from Iran's Hormuz blockade (since Feb 28, 2026) and the Mar 18 strike on Qatar's Ras Laffan LNG complex. Same direction — both benefit while the crisis persists, both exposed to the same reversal if it resolves. MOS is the same sector (fertilizer) but explicitly NOT part of this cluster: its own notes state potash is 'unaffected by recent geopolitical turmoil' — don't assume sector adjacency means correlated exposure here."
+    },
+    {
+      "id": "quiet_2026_hurricane_season",
+      "label": "Suppressed 2026 Atlantic hurricane season",
+      "type": "diverging",
+      "tickers": ["CB", "GNRC"],
+      "detail": "Same underlying NOAA fact (55% chance of a below-normal season, ACE index only ~0.4 as of early July), opposite exposure. CB's loss ratios benefit from fewer storms. GNRC's original storm-driven backup-generator demand thesis is weakened by the same quiet season — though GNRC has since pivoted its growth narrative to data-center demand (see the ai_datacenter_grid_demand cluster below), which cushions but doesn't eliminate the correlation. If the season turns active later in 2026, expect both to move — in opposite directions — off the same trigger."
+    },
+    {
+      "id": "ai_datacenter_grid_demand",
+      "label": "AI/data-center electricity demand buildout",
+      "type": "aligned",
+      "tickers": ["NEE", "PWR", "GNRC"],
+      "unconfirmed_tickers": ["FLNC"],
+      "detail": "All three confirmed tickers explicitly name AI/data-center demand in their own current-quarter notes: NEE (multi-GW long-duration agreements with Meta, Google, and ExxonMobil, guidance raise 'explicitly linked to AI/data-center electricity demand'), PWR ('large-load/data-center facility awards' and 765kV transmission work moving from pipeline to signed contract), GNRC (C&I sales +28% 'fueled by DATA CENTER DEMAND'). All three are nominally tagged grid_reliability — a driver defined around storm/heat resilience — but the actual current growth catalyst for all three is a factor that isn't in the driver taxonomy at all. FLNC (grid-scale battery storage, record $5.6B backlog) is plausibly the same underlying buildout, since data-center load growth drives storage demand too, but FLNC's own notes don't explicitly attribute its backlog to data centers — flagged here as an unconfirmed likely member, not asserted as one."
+    },
+    {
+      "id": "cocoa_input_cost",
+      "label": "Cocoa input-cost exposure",
+      "type": "diverging",
+      "tickers": ["HSY", "MDLZ"],
+      "detail": "Same commodity input (cocoa price) and the same underlying cost risk, but currently diverging OUTCOMES purely from hedge-timing/execution, not different exposure: HSY's Q1 2026 gross margin improved to 39.4%, while MDLZ's fell 580bps on 'unprecedented cocoa cost inflation' plus unfavorable hedge mark-to-market. HSY's current advantage reads as a hedge-timing artifact rather than structural insulation from the same price risk MDLZ is already showing — don't treat HSY's 'mixed' direction as safer than MDLZ's without checking hedge-book duration."
+    },
+    {
+      "id": "regulated_utility_ratebase",
+      "label": "Regulated-utility rate-base growth (non-climate baseline)",
+      "type": "shared_category",
+      "tickers": ["AWK", "XYL"],
+      "detail": "Not a shared event — a shared absence. Both entries' own signal_check already states the climate-driver framing (drought/flood resilience for AWK, rainfall-volatility-to-demand for XYL) is unverified by current disclosures; the real, current growth story for both is standard regulated-utility rate-base compounding / general revenue growth, unrelated to any tagged driver. Two tickers here does not mean two independent bets on secular_warming — it's closer to one underlying bet (regulated-utility growth) counted twice."
+    }
+  ]
+}

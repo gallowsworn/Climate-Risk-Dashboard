@@ -238,6 +238,7 @@ flagging as thin/indirect on arrival, not just carried-forward-and-untested:
 | Global temperature anomaly | Monthly | NASA GISTEMP — `scripts/fetch_temp_anomaly.py` |
 | Wildfire (active-fire detections) | On-demand | NASA FIRMS, Western US — `scripts/fetch_wildfire.py` (needs a free `NASA_FIRMS_MAP_KEY`) |
 | ENSO commodity-price backtest | As-needed (historical analysis, not a live signal) | NOAA CPC ONI + World Bank Pink Sheet — `scripts/backtest_enso.py` (needs `pip install openpyxl`) |
+| Posture performance log | Weekly or monthly (accumulates, never overwrites) | Yahoo Finance chart JSON endpoint (unofficial) — `scripts/log_posture_performance.py` |
 
 ## Earth-science data sources (added 2026-07-18)
 
@@ -314,6 +315,85 @@ exact risk). Real findings folded into CB and LEN:
   assessment specifically, not the $40-41B industry-wide total — worth
   knowing these are different numbers describing the same event at
   different scales, not a contradiction.
+
+## Posture performance log (added 2026-07-18)
+
+`scripts/log_posture_performance.py` tracks whether the dashboard's actual
+posture calls are paying off, as distinct from the ENSO backtest above,
+which tests whether the underlying *mechanism* holds historically. Each
+run appends a price snapshot per non-delisted ticker plus SPY and a
+per-sector benchmark ETF to `data/posture-log.json` — a genuinely
+accumulating time series, not a point-in-time cache, so unlike every
+other `fetch_*`/`log_*` output here it is **committed to git, not
+gitignored**.
+
+Two honest limitations worth knowing before reading anything into it:
+
+- **Not retroactive.** There was no price capture at the moment each
+  entry's posture was first set, so the "baseline" for every ticker is
+  whenever this script first ran for it (2026-07-18), not when the
+  underlying call was actually made. A ticker's baseline resets
+  automatically if its posture later changes, so what it reports is
+  always "performance since we started tracking this specific call,"
+  never "performance since day one."
+- **Unofficial price source.** Unlike NOAA/NASA/USDA/CFTC elsewhere in
+  this project, the price feed (Yahoo Finance's chart JSON endpoint) is
+  not a documented, published API — it's confirmed working today (covers
+  equities, funds, thin OTC names, and even correctly reflects the
+  delisted NIB's frozen price) but could change or get blocked without
+  notice.
+
+Benchmarking is two-layered: every ticker is compared against SPY (broad
+market) and, where a reasonably-fitting sector ETF exists, against that
+too (e.g. AWK/XYL vs. PHO water-infrastructure ETF, LEN vs. ITB
+homebuilders). About a third of sectors here — soft commodities,
+deep-sea mining, aquaculture inputs — have no clean sector ETF and
+compare against SPY only; that's a real gap, left explicit rather than
+forced into a bad-fit proxy.
+
+As of this build there's only one snapshot (2026-07-18) — no returns or
+alpha figures exist yet, and the dashboard doesn't surface this data at
+all yet. Re-run the script weekly or monthly; once a ticker has two or
+more snapshots under its current posture, the script's own console
+output reports its return vs. SPY and (where available) its sector
+benchmark since baseline.
+
+## Concentration clusters (added 2026-07-18)
+
+Scanning tickers one at a time hides something: several "different" names
+in this dataset are actually the same underlying bet wearing different
+labels, or the same fact cutting through two tickers in opposite
+directions. `data/concentration-clusters.json` makes that explicit — a
+small, hand-maintained (not fetched/generated) list of cross-ticker
+groupings, derived from reasoning already written into each entry's own
+`driver_dominance_note`/`notes` fields, not new research. The dashboard
+shows a **Correlated** badge on any affected card (hover/focus for which
+cluster) plus a full explanation in the expanded detail view.
+
+Five clusters as of this build:
+
+- **Strait of Hormuz gas-price shock** — CF, NTR. MOS is the same sector
+  but explicitly excluded: its own notes say potash is unaffected by the
+  same geopolitical turmoil.
+- **Suppressed 2026 Atlantic hurricane season** — CB, GNRC, moving in
+  *opposite* directions off the same NOAA fact (helps CB's loss ratios,
+  hurts GNRC's original storm-demand thesis).
+- **AI/data-center electricity demand buildout** — NEE, PWR, GNRC,
+  confirmed via each entry's own notes explicitly naming data-center
+  demand; all three are nominally tagged `grid_reliability` (a
+  storm/heat-resilience driver) even though data-center load growth is
+  the real current catalyst. FLNC is flagged as a plausible but
+  *unconfirmed* fourth member.
+- **Cocoa input-cost exposure** — HSY, MDLZ, diverging only on
+  hedge-timing execution, not on actual exposure to the same commodity.
+- **Regulated-utility rate-base growth** — AWK, XYL. Not a shared event
+  but a shared absence: both entries' own `signal_check` already says the
+  climate framing is unverified, so two tickers here is closer to one
+  non-climate bet counted twice than two independent ones.
+
+This file doesn't regenerate itself — if new tickers are added or a
+thesis shifts enough to change its `driver_dominance_note`, the clusters
+need a manual re-scan.
 
 ## Candidate additions (status)
 
