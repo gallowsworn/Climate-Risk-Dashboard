@@ -2,6 +2,14 @@
 
 Guidance for Claude Code sessions working in this repo. See [README.md](README.md) for user-facing setup/run instructions — this file is the denser, agent-facing reference: schema, conventions, history, gotchas.
 
+## Project location — read this first
+
+**Canonical working directory (as of 2026-08-02):** `C:\Users\justi\Documents\Claude Builds\Climate Risk Dashboard`
+
+This repo was originally built and worked from `C:\Users\justi\OneDrive\Documents\Claude Builds\Climate Risk Dashboard`. That folder still exists and its git history matches this one exactly as of the migration (same HEAD commit), but it is now a **stale, pre-migration copy** — don't do new work there. This folder is the one wired to a real GitHub remote (`origin` → `https://github.com/gallowsworn/Climate-Risk-Dashboard.git`), which the OneDrive copy never had. If a session ever opens in the OneDrive path, redirect to this one before doing anything else.
+
+One consequence worth knowing: this project's path-scoped memory (user preferences, feedback, project context accumulated across past sessions) is keyed to the *old* OneDrive path and won't automatically carry over here — a session working from this folder starts with a clean memory slate unless that's manually ported over.
+
 ## What this is
 
 A personal investing research tool, **not financial advice**. It screens US-market-accessible stocks/ETFs/ETNs against climate/ecological risk drivers (El Nino 2026-27 is the current near-term stress test, one input among several — not the sole organizing frame). Every data field must trace to a specific, named source; thin or contested evidence is flagged explicitly in-line rather than smoothed into false confidence. That principle is the single most important thing to preserve when editing this repo.
