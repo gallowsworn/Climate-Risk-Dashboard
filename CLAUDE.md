@@ -12,7 +12,7 @@ One consequence worth knowing: this project's path-scoped memory (user preferenc
 
 ## GitHub Pages hosting (added 2026-08-02)
 
-The dashboard is being hosted via GitHub Pages (source: `master` branch, root) so it has a stable URL instead of only being reachable via `scripts/serve.ps1` on localhost — target URL `https://gallowsworn.github.io/Climate-Risk-Dashboard/dashboard/`. This requires the repo to be **public** (GitHub Pages needs a paid plan for private-repo Pages), which the user consciously opted into after being told the implication — this repo contains personal investing research notes, not just code.
+The dashboard is hosted via GitHub Pages (source: `master` branch, root) — **live at `https://gallowsworn.github.io/Climate-Risk-Dashboard/dashboard/`** (confirmed working 2026-08-04) — instead of only being reachable via `scripts/serve.ps1` on localhost. Note the trailing `/dashboard/` is required: the bare repo root 404s by design (see `.nojekyll` note below), since GitHub's own "Visit site" button in the Pages settings UI links to the root, not this subpath. This requires the repo to be **public** (GitHub Pages needs a paid plan for private-repo Pages), which the user consciously opted into after being told the implication — this repo contains personal investing research notes, not just code.
 
 To cut down (not eliminate) the odds of the site surfacing in search results despite being public:
 - **`/robots.txt`** (repo root) — `Disallow: /` for all user agents.

@@ -9,6 +9,10 @@ the sole organizing principle.
 tool, not a signal generator. Every entry needs a defensible rationale and a
 named source; "I'm not sure" is a valid field value.
 
+**Live dashboard:** https://gallowsworn.github.io/Climate-Risk-Dashboard/dashboard/
+(hosted via GitHub Pages; blocked from search-engine indexing, not truly
+private — see "GitHub Pages hosting" in CLAUDE.md)
+
 ## Posture values
 
 `posture` has six values — the dashboard's Legend panel (top of the filter
