@@ -10,6 +10,17 @@ This repo was originally built and worked from `C:\Users\justi\OneDrive\Document
 
 One consequence worth knowing: this project's path-scoped memory (user preferences, feedback, project context accumulated across past sessions) is keyed to the *old* OneDrive path and won't automatically carry over here — a session working from this folder starts with a clean memory slate unless that's manually ported over.
 
+## GitHub Pages hosting (added 2026-08-02)
+
+The dashboard is being hosted via GitHub Pages (source: `master` branch, root) so it has a stable URL instead of only being reachable via `scripts/serve.ps1` on localhost — target URL `https://gallowsworn.github.io/Climate-Risk-Dashboard/dashboard/`. This requires the repo to be **public** (GitHub Pages needs a paid plan for private-repo Pages), which the user consciously opted into after being told the implication — this repo contains personal investing research notes, not just code.
+
+To cut down (not eliminate) the odds of the site surfacing in search results despite being public:
+- **`/robots.txt`** (repo root) — `Disallow: /` for all user agents.
+- **`<meta name="robots" content="noindex, nofollow">`** in `dashboard/index.html`'s `<head>`.
+- **`/.nojekyll`** (repo root, empty file) — GitHub Pages runs Jekyll by default on repos with no explicit Jekyll config, which would auto-generate a homepage from `README.md` that the noindex meta tag above has no way to reach (Jekyll's auto-render, not a file we control the `<head>` of). Disabling Jekyll entirely keeps the site a plain static file server matching this project's actual "no build step" design, and means only files that actually exist (with our own tags intact) get served — no auto-generated root index at all, so the bare repo root URL will just 404, which is fine.
+
+None of this is real access control — anyone with the direct link can still view the site and the repo. It only reduces passive discoverability (search engines, GitHub's own search/explore). If a stronger guarantee is ever needed, that requires either keeping the repo private (paid plan) or moving to a host that supports actual auth-gated static hosting.
+
 ## What this is
 
 A personal investing research tool, **not financial advice**. It screens US-market-accessible stocks/ETFs/ETNs against climate/ecological risk drivers (El Nino 2026-27 is the current near-term stress test, one input among several — not the sole organizing frame). Every data field must trace to a specific, named source; thin or contested evidence is flagged explicitly in-line rather than smoothed into false confidence. That principle is the single most important thing to preserve when editing this repo.
